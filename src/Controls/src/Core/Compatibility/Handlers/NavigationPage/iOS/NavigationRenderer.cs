@@ -1351,7 +1351,7 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 						{
 							backBarButtonItem.Title = NavigationPage.GetBackButtonTitle(currentPage);
 						}
-						
+
 						NavigationItem.SetLeftBarButtonItem(backBarButtonItem, true);
 					}
 					else
