@@ -27,20 +27,10 @@ namespace Microsoft.Maui.Platform
 		{
 			var pivotX = (float)(view.AnchorX * platformView.ToPixels(view.Frame.Width));
 			var pivotY = (float)(view.AnchorY * platformView.ToPixels(view.Frame.Height));
-			int visibility;
-
-			if (view is IActivityIndicator a)
-			{
-				visibility = (int)a.GetActivityIndicatorVisibility();
-			}
-			else
-			{
-				visibility = (int)view.Visibility.ToPlatformVisibility();
-			}
 
 			// NOTE: use named arguments for clarity
 			PlatformInterop.Set(platformView,
-				visibility: visibility,
+				visibility: 0,
 				layoutDirection: (int)GetLayoutDirection(view),
 				minimumHeight: (int)platformView.ToPixels(view.MinimumHeight),
 				minimumWidth: (int)platformView.ToPixels(view.MinimumWidth),
@@ -100,9 +90,12 @@ namespace Microsoft.Maui.Platform
 			platformView.ClearFocus();
 		}
 
-		public static void UpdateVisibility(this AView platformView, IView view)
+		public static void UpdateVisibility(this AView platformView, IView view) =>
+			ViewExtensions.UpdateVisibility(platformView, view.Visibility);
+
+		public static void UpdateVisibility(this AView platformView, Visibility visibility)
 		{
-			platformView.Visibility = view.Visibility.ToPlatformVisibility();
+			platformView.Visibility = visibility.ToPlatformVisibility();
 		}
 
 		public static void UpdateClip(this AView platformView, IView view)
@@ -116,6 +109,13 @@ namespace Microsoft.Maui.Platform
 			if (platformView is WrapperView wrapper)
 				wrapper.Shadow = view.Shadow;
 		}
+
+		public static void UpdateInputTransparent(this AView platformView, IView view)
+		{
+			if (platformView is WrapperView wrapper)
+				wrapper.InputTransparent = view.InputTransparent;
+		}
+
 		public static void UpdateBorder(this AView platformView, IView view)
 		{
 			if (platformView is WrapperView wrapper)
@@ -275,9 +275,12 @@ namespace Microsoft.Maui.Platform
 			}
 		}
 
-		public static void UpdateOpacity(this AView platformView, IView view)
+		public static void UpdateOpacity(this AView platformView, IView view) =>
+			ViewExtensions.UpdateOpacity(platformView, view.Opacity);
+
+		public static void UpdateOpacity(this AView platformView, double opacity)
 		{
-			platformView.Alpha = (float)view.Opacity;
+			platformView.Alpha = (float)opacity;
 		}
 
 		public static void UpdateFlowDirection(this AView platformView, IView view)

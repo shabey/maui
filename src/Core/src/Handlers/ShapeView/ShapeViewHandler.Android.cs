@@ -13,7 +13,7 @@ namespace Microsoft.Maui.Handlers
 
 		public static void MapBackground(IShapeViewHandler handler, IShapeView shapeView)
 		{
-			handler.UpdateValue(nameof(IViewHandler.ContainerView));
+			(handler as IDynamicContainerViewHandler)?.ContainerAffectingProperties?.Add(nameof(IView.Background));
 			handler.ToPlatform().UpdateBackground(shapeView);
 
 			handler.PlatformView?.InvalidateShape(shapeView);

@@ -30,9 +30,12 @@ namespace Microsoft.Maui.Platform
 				Tizen.NUI.FocusManager.Instance.ClearFocus();
 		}
 
-		public static void UpdateVisibility(this NView platformView, IView view)
+		public static void UpdateVisibility(this NView platformView, IView view) =>
+			ViewExtensions.UpdateVisibility(platformView, view.Visibility);
+
+		public static void UpdateVisibility(this NView platformView, Visibility visibility)
 		{
-			if (view.Visibility.ToPlatformVisibility())
+			if (visibility.ToPlatformVisibility())
 			{
 				platformView.Show();
 				platformView.Layout?.RequestLayout();
@@ -134,9 +137,12 @@ namespace Microsoft.Maui.Platform
 				wrapperView.Border = border.Border;
 		}
 
-		public static void UpdateOpacity(this NView platformView, IView view)
+		public static void UpdateOpacity(this NView platformView, IView view) =>
+			ViewExtensions.UpdateOpacity(platformView, view.Opacity);
+
+		public static void UpdateOpacity(this NView platformView, double opacity)
 		{
-			platformView.Opacity = (float)view.Opacity;
+			platformView.Opacity = (float)opacity;
 		}
 
 		public static void UpdateClip(this NView platformView, IView view)
@@ -215,7 +221,10 @@ namespace Microsoft.Maui.Platform
 			// NUI MaximumSize is not working properly
 		}
 
-		public static void UpdateInputTransparent(this NView platformView, IViewHandler handler, IView view)
+		public static void UpdateInputTransparent(this NView platformView, IViewHandler handler, IView view) =>
+			UpdateInputTransparent(platformView, view);
+
+		public static void UpdateInputTransparent(this NView platformView, IView view)
 		{
 			platformView.Sensitive = !view.InputTransparent;
 		}
@@ -332,14 +341,6 @@ namespace Microsoft.Maui.Platform
 
 			view.RemovedFromWindow += routedEventHandler;
 			return disposable;
-		}
-
-		internal static bool NeedsContainer(this IView? view)
-		{
-			if (view is IBorderView border)
-				return border?.Shape != null || border?.Stroke != null;
-
-			return false;
 		}
 	}
 }

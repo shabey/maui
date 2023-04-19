@@ -12,6 +12,8 @@ namespace Microsoft.Maui.Platform
 
 		public static void UpdateVisibility(this object platformView, IView view) { }
 
+		public static void UpdateVisibility(this object platformView, Visibility visibility) { }
+
 		public static Task UpdateBackgroundImageSourceAsync(this object platformView, IImageSource? imageSource, IImageSourceServiceProvider? provider)
 			=> Task.CompletedTask;
 
@@ -28,6 +30,8 @@ namespace Microsoft.Maui.Platform
 		public static void UpdateBorder(this object platformView, IView view) { }
 
 		public static void UpdateOpacity(this object platformView, IView view) { }
+
+		public static void UpdateOpacity(this object platformView, double opacity) { }
 
 		public static void UpdateSemantics(this object platformView, IView view) { }
 
@@ -78,5 +82,7 @@ namespace Microsoft.Maui.Platform
 			=> null;
 
 		public static void UpdateInputTransparent(this object nativeView, IViewHandler handler, IView view) { }
+
+		public static void UpdateInputTransparent(this object nativeView, IView view) { }
 	}
 }
