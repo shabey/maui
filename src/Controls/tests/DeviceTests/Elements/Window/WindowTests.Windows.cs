@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.DeviceTests.Stubs;
+using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Graphics.Win2D;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Platform;
@@ -13,6 +14,36 @@ namespace Microsoft.Maui.DeviceTests
 {
 	public partial class WindowTests : ControlsHandlerTestBase
 	{
+		[Fact(DisplayName = "Swapping MainPage doesn't Crash")]
+		public async Task SwappingMainPageDoesntCrash()
+		{
+			SetupBuilder();
+
+			var mainPage = new ContentPage
+			{
+				BackgroundColor = Colors.Red
+			};
+
+			var secondaryPage = new ContentPage
+			{
+				BackgroundColor = Colors.Green
+			};
+
+			await CreateHandlerAndAddToWindow<IWindowHandler>(mainPage, (handler) =>
+			{
+				var mainWindow = handler.VirtualView as Window;
+				
+				mainWindow.Page = secondaryPage;
+				Assert.Equal(mainWindow.Page, secondaryPage);
+
+				mainWindow.Page = mainPage;
+				// Without exceptions, the test has passed.
+				Assert.Equal(mainWindow.Page, mainPage);
+
+				Assert.NotNull(mainWindow.Page);
+			});
+		}
+
 		[Fact]
 		public async Task AdornerLayerAdded()
 		{
@@ -133,6 +164,42 @@ namespace Microsoft.Maui.DeviceTests
 					}
 				}
 			});
+		}
+
+		[Collection(ControlsHandlerTestBase.RunInNewWindowCollection)]
+		public class WindowTestsRunInNewWindowCollection : ControlsHandlerTestBase
+		{
+			[Fact]
+			public async Task MinimizeAndThenMaximizingWorks()
+			{
+				var window = new Window(new ContentPage());
+
+				int activated = 0;
+				int deactivated = 0;
+				int resumed = 0;
+
+				window.Activated += (_, _) => activated++;
+				window.Deactivated += (_, _) => deactivated++;
+				window.Resumed += (_, _) => resumed++;
+
+				await CreateHandlerAndAddToWindow<IWindowHandler>(window, async (handler) =>
+				{
+					var platformWindow = window.Handler.PlatformView as UI.Xaml.Window;
+
+					await Task.Yield();
+
+					for (int i = 0; i < 2; i++)
+					{
+						platformWindow.Restore();
+						await Task.Yield();
+						platformWindow.Minimize();
+					}
+				});
+
+				Assert.Equal(2, activated);
+				Assert.Equal(1, resumed);
+				Assert.Equal(2, deactivated);
+			}
 		}
 	}
 }

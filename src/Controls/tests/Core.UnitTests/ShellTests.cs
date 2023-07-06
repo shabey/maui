@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls.Internals;
@@ -253,6 +254,36 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			shell.Items.Add(new ShellItem());
 
 			Assert.Equal(shellItem, shell.CurrentItem);
+		}
+
+		[Fact]
+		public void AddRemoveItemsDoesNotCrash()
+		{
+			var shell = new Shell();
+
+			var rootItem = new FlyoutItem()
+			{
+				FlyoutDisplayOptions = FlyoutDisplayOptions.AsMultipleItems
+			};
+
+			for (int i = 0; i < 3; i++)
+			{
+				var shellContent = new ShellContent
+				{
+					Content = new ContentPage(),
+					Title = $"Item {i}",
+				};
+				rootItem.Items.Add(shellContent);
+			}
+			shell.Items.Add(rootItem);
+			shell.CurrentItem = rootItem.Items[0];
+
+			shell.Items.ElementAt(0).Items.RemoveAt(1);
+			shell.CurrentItem = rootItem.Items[1];
+
+			Assert.Same(shell.CurrentSection, rootItem.Items[1]);
+			Assert.True(shell.Items.ElementAt(0).Items.Count == 2);
+			Assert.True(shell.CurrentSection.Title == "Item 2");
 		}
 
 		[Fact]
@@ -743,6 +774,29 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			Assert.Contains(layout, page.ChildrenNotDrawnByThisElement);
 		}
 
+		[Fact]
+		public async Task ShellLogicalChildrenContainsTitleView()
+		{
+			Shell shell = new Shell();
+			ContentPage page = new ContentPage();
+			shell.Items.Add(CreateShellItem(page));
+			page.BindingContext = new { Text = "Binding" };
+
+			// setup title view
+			StackLayout layout = new StackLayout() { BackgroundColor = Colors.White };
+			Label label = new Label();
+			label.SetBinding(Label.TextProperty, "Text");
+			layout.Children.Add(label);
+			Shell.SetTitleView(shell, layout);
+
+			// Should contain Layout in logical children of shell.
+			Assert.Contains(layout, shell.LogicalChildrenInternal);
+
+			Shell.SetTitleView(shell, null);
+
+			// Should now be removed.
+			Assert.DoesNotContain(layout, shell.LogicalChildrenInternal);
+		}
 
 		[Fact]
 		public async Task FlyoutHeaderLogicalChild()
@@ -761,10 +815,10 @@ namespace Microsoft.Maui.Controls.Core.UnitTests
 			shell.FlyoutHeader = null;
 			shell.FlyoutHeader = layout;
 
-			Assert.Contains(layout, shell.LogicalChildren);
+			Assert.Contains(layout, shell.LogicalChildrenInternal);
 			shell.FlyoutHeader = null;
 
-			Assert.DoesNotContain(layout, shell.LogicalChildren);
+			Assert.DoesNotContain(layout, shell.LogicalChildrenInternal);
 		}
 
 
