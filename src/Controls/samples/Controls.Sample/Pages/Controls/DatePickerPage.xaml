@@ -89,6 +89,22 @@
                     Margin="6, 0"
                     Style="{StaticResource IsFocusedTextStyle}"/>
             </HorizontalStackLayout>
+            
+            <Label      
+                Text="Date Selected/Changed Events"
+                Style="{StaticResource Headline}"/>
+            <DatePicker
+                DateSelected="DatePicker_DateSelected"
+                DateChanged="DatePicker_DateChanged"/>
+            <Label
+                x:Name="DateSelectedText"
+                Text="Date Selected: "/>
+            <Label
+                x:Name="DateChangedText"
+                Text="Date Changed: "/>
+            <Button
+                Text="Clear Selected/Changed Text"
+                Clicked="OnClearSelectedAndChangedText"/>
         </VerticalStackLayout>
     </views:BasePage.Content>               
 </views:BasePage>
