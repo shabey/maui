@@ -111,6 +111,7 @@ namespace Microsoft.Maui.DeviceTests
 			var collectionView = new CollectionView
 			{
 				ItemsLayout = itemsLayout,
+				Background = Colors.Red,
 				ItemTemplate = new DataTemplate(() => new Label() { HeightRequest = templateHeight, WidthRequest = templateWidth }),
 			};
 
@@ -142,6 +143,13 @@ namespace Microsoft.Maui.DeviceTests
 					await WaitForUIUpdate(frame, collectionView);
 					frame = collectionView.Frame;
 
+#if WINDOWS || ANDROID
+					// On Windows, the ListView pops in and changes the frame, then actually
+					// loads in the data, which updates it again. So we need to wait for the second
+					// update before checking the size
+					await WaitForUIUpdate(frame, collectionView);
+					frame = collectionView.Frame;
+#endif
 					double expectedWidth = layoutOptions == LayoutOptions.Fill
 						? containerWidth
 						: Math.Min(itemsCount * templateWidth, containerWidth);
@@ -162,15 +170,69 @@ namespace Microsoft.Maui.DeviceTests
 			});
 		}
 
-		public static IEnumerable<object[]> GenerateLayoutOptionsCombos()
+		[Theory]
+		[InlineData(true, false, false)]
+		[InlineData(true, false, true)]
+		[InlineData(true, true, false)]
+		[InlineData(true, true, true)]
+		[InlineData(false, false, false)]
+		[InlineData(false, false, true)]
+		[InlineData(false, true, false)]
+		[InlineData(false, true, true)]
+		public async Task CollectionViewStructuralItems(bool hasHeader, bool hasFooter, bool hasData)
 		{
-			var layoutOptions = new LayoutOptions[] {
+			SetupBuilder();
 
-#if !WINDOWS
-				LayoutOptions.Center, LayoutOptions.Start, LayoutOptions.End,
+			double containerHeight = 500;
+			double containerWidth = 500;
+			var layout = new Grid() { IgnoreSafeArea = true, HeightRequest = containerHeight, WidthRequest = containerWidth };
+
+			Label headerLabel = hasHeader ? new Label { Text = "header" } : null;
+			Label footerLabel = hasFooter ? new Label { Text = "footer" } : null;
+
+			var collectionView = new CollectionView
+			{
+				ItemsLayout = LinearItemsLayout.Vertical,
+				ItemTemplate = new DataTemplate(() => new Label() { HeightRequest = 20, WidthRequest = 20 }),
+				Header = headerLabel,
+				Footer = footerLabel,
+				ItemsSource = hasData ? null : new ObservableCollection<string> { "data" }
+			};
+
+			layout.Add(collectionView);
+
+			var frame = collectionView.Frame;
+
+			await CreateHandlerAndAddToWindow<LayoutHandler>(layout, async handler =>
+			{
+				await WaitForUIUpdate(frame, collectionView);
+				frame = collectionView.Frame;
+
+#if WINDOWS
+					// On Windows, the ListView pops in and changes the frame, then actually
+					// loads in the data, which updates it again. So we need to wait for the second
+					// update before checking the size
+					await WaitForUIUpdate(frame, collectionView);
+					frame = collectionView.Frame;
 #endif
 
-				LayoutOptions.Fill };
+				if (hasHeader)
+				{
+					Assert.True(headerLabel.Height > 0);
+					Assert.True(headerLabel.Width > 0);
+				}
+
+				if (hasFooter)
+				{
+					Assert.True(footerLabel.Height > 0);
+					Assert.True(footerLabel.Width > 0);
+				}
+			});
+		}
+
+		public static IEnumerable<object[]> GenerateLayoutOptionsCombos()
+		{
+			var layoutOptions = new LayoutOptions[] { LayoutOptions.Center, LayoutOptions.Start, LayoutOptions.End, LayoutOptions.Fill };
 
 			foreach (var option in layoutOptions)
 			{

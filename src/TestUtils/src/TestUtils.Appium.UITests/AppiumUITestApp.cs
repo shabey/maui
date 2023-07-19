@@ -8,6 +8,7 @@ using OpenQA.Selenium.Appium.Enums;
 using OpenQA.Selenium.Appium.Interactions;
 using OpenQA.Selenium.Appium.iOS;
 using OpenQA.Selenium.Interactions;
+using OpenQA.Selenium.Support.UI;
 using Xamarin.UITest;
 using Xamarin.UITest.Queries;
 using Xamarin.UITest.Queries.Tokens;
@@ -174,7 +175,14 @@ namespace TestUtils.Appium.UITests
 				{
 					if (IsiOS)
 					{
-						_driver.HideKeyboard("return");
+						try
+						{
+							_driver.HideKeyboard("return");
+						}
+						catch (InvalidElementStateException)
+						{
+							// Appium iOS driver does not have a consistent way to dismiss the keyboard
+						}
 					}
 					else
 					{
@@ -290,7 +298,7 @@ namespace TestUtils.Appium.UITests
 					{ "toY", toY }
 				});
 			}
-			else if(IsMac)
+			else if (IsMac)
 			{
 				_driver?.ExecuteScript("macos: clickAndDragAndHold", new Dictionary<string, object>
 				{
@@ -341,6 +349,22 @@ namespace TestUtils.Appium.UITests
 		{
 			element.SendKeys(text);
 			DismissKeyboard();
+		}
+
+		public bool WaitForTextToBePresentInElement(string automationId, string text)
+		{
+			WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
+
+			return wait.Until(driver =>
+			{
+				var elementText = Query(automationId).FirstOrDefault()?.Text;
+				if (elementText != null && elementText.Contains(text, StringComparison.OrdinalIgnoreCase))
+				{
+					return true;
+				}
+
+				return false;
+			});
 		}
 
 		public void EnterText(Func<AppQuery, AppWebQuery> query, string text)
