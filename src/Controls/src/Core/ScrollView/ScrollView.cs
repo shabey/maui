@@ -373,7 +373,20 @@ namespace Microsoft.Maui.Controls
 			CheckTaskCompletionSource();
 			ScrollToRequested?.Invoke(this, e);
 
-			Handler?.Invoke(nameof(IScrollView.RequestScrollTo), ConvertRequestMode(e).ToRequest());
+			if (Handler is not null)
+			{
+				Handler.Invoke(nameof(IScrollView.RequestScrollTo), ConvertRequestMode(e).ToRequest());
+			}
+			else
+			{
+				Loaded += (sender, args) =>
+				{
+					Dispatcher.Dispatch(() =>
+					{
+						Handler?.Invoke(nameof(IScrollView.RequestScrollTo), ConvertRequestMode(e).ToRequest());
+					});
+				};
+			}
 		}
 
 		ScrollToRequestedEventArgs ConvertRequestMode(ScrollToRequestedEventArgs args)
