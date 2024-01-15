@@ -1,4 +1,4 @@
-#nullable disable
+﻿#nullable disable
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
@@ -31,6 +31,20 @@ namespace Microsoft.Maui.Controls
 
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public event EventHandler<ScrollToRequestedEventArgs> ScrollToRequested;
+
+		ScrollToRequestedEventArgs _pendingScrollToRequested;
+
+		private protected override void OnHandlerChangedCore()
+		{
+			base.OnHandlerChangedCore();
+
+			if (Handler is not null && _pendingScrollToRequested is not null)
+			{
+				OnScrollToRequested(_pendingScrollToRequested);
+				_pendingScrollToRequested = null;
+        _scrollCompletionSource.TrySetResult(true);
+			}
+		}
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/ScrollView.xml" path="//Member[@MemberName='GetScrollPositionForElement']/Docs/*" />
 		[EditorBrowsable(EditorBrowsableState.Never)]
@@ -336,7 +350,10 @@ namespace Microsoft.Maui.Controls
 			{
 				_scrollCompletionSource.TrySetCanceled();
 			}
-			_scrollCompletionSource = new TaskCompletionSource<bool>();
+      if (_pendingScrollToRequested == null)
+      {
+				_scrollCompletionSource = new TaskCompletionSource<bool>();
+      }
 		}
 
 		double GetCoordinate(Element item, string coordinateName, double coordinate)
@@ -373,20 +390,10 @@ namespace Microsoft.Maui.Controls
 			CheckTaskCompletionSource();
 			ScrollToRequested?.Invoke(this, e);
 
-			if (Handler is not null)
-			{
-				Handler.Invoke(nameof(IScrollView.RequestScrollTo), ConvertRequestMode(e).ToRequest());
-			}
+			if (Handler is null)
+				_pendingScrollToRequested = e;
 			else
-			{
-				Loaded += (sender, args) =>
-				{
-					Dispatcher.Dispatch(() =>
-					{
-						Handler?.Invoke(nameof(IScrollView.RequestScrollTo), ConvertRequestMode(e).ToRequest());
-					});
-				};
-			}
+				Handler.Invoke(nameof(IScrollView.RequestScrollTo), ConvertRequestMode(e).ToRequest());
 		}
 
 		ScrollToRequestedEventArgs ConvertRequestMode(ScrollToRequestedEventArgs args)
@@ -438,8 +445,7 @@ namespace Microsoft.Maui.Controls
 
 		protected override Size MeasureOverride(double widthConstraint, double heightConstraint)
 		{
-			DesiredSize = this.ComputeDesiredSize(widthConstraint, heightConstraint);
-			return DesiredSize;
+			return this.ComputeDesiredSize(widthConstraint, heightConstraint);
 		}
 
 		Size ICrossPlatformLayout.CrossPlatformMeasure(double widthConstraint, double heightConstraint)

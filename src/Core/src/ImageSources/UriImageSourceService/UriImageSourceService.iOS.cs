@@ -53,7 +53,8 @@ namespace Microsoft.Maui
 						CacheImage(imageData, pathToImageCache);
 				}
 
-				var image = UIImage.LoadFromData(imageData, scale);
+				// We do not need to pass the scale in here as the image file is not scaled to the screen scale.
+				var image = UIImage.LoadFromData(imageData);
 
 				if (image == null)
 					throw new InvalidOperationException($"Unable to decode image from URI '{imageSource.Uri}'.");
@@ -69,6 +70,7 @@ namespace Microsoft.Maui
 			}
 		}
 
+#pragma warning disable CA1822 // Mark members as static; Disabling because these methods are public and changing them to static is potentially a breaking change
 		public void CacheImage(NSData imageData, string path)
 		{
 			var directory = Path.GetDirectoryName(path);
@@ -100,6 +102,6 @@ namespace Microsoft.Maui
 
 			return imageData;
 		}
+#pragma warning restore CA1822 // Mark members as static
 	}
-
 }

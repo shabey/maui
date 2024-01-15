@@ -13,11 +13,9 @@ steps:
 
   - template: provision.yml
     parameters:
-      ${{ if eq(parameters.platform, 'windows') }}:
-        skipProvisioning: true
-      ${{ if ne(parameters.platform, 'windows') }}:
-        skipProvisioning: false
-      skipXcode: false
+      skipProvisioning:  ${{ eq(parameters.platform, 'windows') }}
+      skipAndroidSdks: ${{ ne(parameters.platform, 'android') }}
+      skipXcode: ${{ or(eq(parameters.platform, 'android'), eq(parameters.platform, 'windows')) }}
       provisionatorChannel: ${{ parameters.provisionatorChannel }}
 
   - task: PowerShell@2
@@ -31,13 +29,57 @@ steps:
     displayName: "Modify defaults"
     continueOnError: true
 
-  - task: NodeTool@0
+  # AzDO hosted agents default to 1024x768; set something bigger for Windows UI tests
+  - task: ScreenResolutionUtility@1
+    condition: eq('${{ parameters.platform }}' , 'windows')
     inputs:
-      versionSpec: "20.3.1"
+      displaySettings: 'specific'
+      width: '1920'
+      height: '1080'
+    displayName: "Set screen resolution"
+
+  - task: UseNode@1
+    inputs:
+      version: "20.3.1"
     displayName: "Install node"
+    
+  - bash: |
+      echo "##[group]Running ls -al $(npm root -g)"
+      ls -al $(npm root -g)
+      echo "##[endgroup]"
+
+      echo "##[group]Running ls -al $(npm root -g)/appium"
+      ls -al $(npm root -g)/appium
+      echo "##[endgroup]"
+
+      echo "##[group]Running ls -al $(npm root -g)/.appium-????????"
+      ls -al $(npm root -g)/.appium-????????
+      echo "##[endgroup]"
+
+      echo "##[group]Running ls -al $(npm root -g)/appium-doctor"
+      ls -al $(npm root -g)/appium-doctor
+      echo "##[endgroup]"
+
+      echo "##[group]Running ls -al $(npm root -g)/.appium-doctor-????????"
+      ls -al $(npm root -g)/.appium-doctor-????????
+      echo "##[endgroup]"
+
+      echo "##[group]Running ps aux"
+      ps aux
+      echo "##[endgroup]"
+    displayName: "Debugging output"
+    continueOnError: true
+    condition: startsWith(variables['Agent.Name'], 'XAMBOT')
+
+  # Clean up any leftover cached folders of appium and appium-doctor node modules
+  - bash: |
+      rm -rf $(npm root -g)/.appium-????????
+      rm -rf $(npm root -g)/.appium-doctor-????????
+    displayName: "Delete temp .appium-???????? and .appium-doctor-???????? folders"
+    continueOnError: true
 
   - pwsh: ./eng/scripts/appium-install.ps1
-    displayName: "Install Appium"
+    displayName: "Install Appium (Drivers)"
     continueOnError: false
     retryCountOnTaskFailure: 1
 
