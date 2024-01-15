@@ -42,7 +42,7 @@ namespace Microsoft.Maui.Controls
 			{
 				OnScrollToRequested(_pendingScrollToRequested);
 				_pendingScrollToRequested = null;
-        _scrollCompletionSource.TrySetResult(true);
+				_scrollCompletionSource.TrySetResult(true);
 			}
 		}
 
@@ -350,10 +350,10 @@ namespace Microsoft.Maui.Controls
 			{
 				_scrollCompletionSource.TrySetCanceled();
 			}
-      if (_pendingScrollToRequested == null)
-      {
+			if (_pendingScrollToRequested == null)
+			{
 				_scrollCompletionSource = new TaskCompletionSource<bool>();
-      }
+			}
 		}
 
 		double GetCoordinate(Element item, string coordinateName, double coordinate)
