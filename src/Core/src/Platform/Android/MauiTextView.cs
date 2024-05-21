@@ -1,14 +1,17 @@
 ﻿using System;
 using Android.Content;
+using Android.Views;
 using AndroidX.AppCompat.Widget;
 
 namespace Microsoft.Maui.Platform
 {
-	public class MauiTextView : PlatformAppCompatTextView
+	public class MauiTextView : PlatformAppCompatTextView, IInputTransparentCapable
 	{
 		public MauiTextView(Context context) : base(context)
 		{
 		}
+
+		bool IInputTransparentCapable.InputTransparent { get; set; }
 
 		internal event EventHandler<LayoutChangedEventArgs>? LayoutChanged;
 
@@ -16,6 +19,10 @@ namespace Microsoft.Maui.Platform
 		{
 			LayoutChanged?.Invoke(this, new LayoutChangedEventArgs(l, t, r, b));
 		}
+
+		public override bool OnTouchEvent(MotionEvent? e) =>
+			base.OnTouchEvent(e) ||
+			TouchEventInterceptor.OnTouchEvent(this, e);
 	}
 
 	public class LayoutChangedEventArgs : EventArgs
