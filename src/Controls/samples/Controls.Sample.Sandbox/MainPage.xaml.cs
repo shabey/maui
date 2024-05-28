@@ -1,42 +1,18 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Maui;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Graphics;
 
-namespace Maui.Controls.Sample;
-
-public partial class MainPage : ContentPage
+namespace Maui.Controls.Sample
 {
-	private Label[] _labels;
-
-	public MainPage()
+	public partial class MainPage : ContentPage
 	{
-		InitializeComponent();
-
-		_labels = [label1, label2, label3, label4];
-	}
-
-	private void OnTap(object? sender, TappedEventArgs e)
-	{
-		Color textColor = GetTextColor(sender);
-		results.Add(new Label() { Text = "OnTap called", TextColor = textColor });
-	}
-
-	private void OnDoubleTap(object? sender, TappedEventArgs e)
-	{
-		Color textColor = GetTextColor(sender);
-		results.Add(new Label() { Text = "OnDoubleTap called", TextColor = textColor });
-	}
-
-	private Color GetTextColor(object? sender)
-	{
-		foreach (Label label in _labels)
+		public MainPage()
 		{
-			if (sender == label)
-			{
-				return label.TextColor;
-			}
+			InitializeComponent();
 		}
-
-		return Color.Parse("Gray");
 	}
 }
