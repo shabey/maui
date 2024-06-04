@@ -12,7 +12,8 @@
   </FlyoutPage.Flyout>
   <FlyoutPage.Detail>
     <TabbedPage android:TabbedPage.ToolbarPlacement="Bottom">
-      <ContentPage Title="Page1">
+      <ContentPage IconImageSource="shopping_cart"
+          Title="Page1">
         <Grid RowDefinitions="Auto,*,Auto"
               VerticalOptions="Fill">
           <Label
@@ -23,16 +24,20 @@
                   BackgroundColor="Green"/>
         </Grid>
       </ContentPage>
-      <ContentPage Title="Page2">
+      <ContentPage IconImageSource="shopping_cart"
+                   Title="Page2">
         <Label>Page2</Label>
       </ContentPage>
-      <ContentPage Title="Page3">
+      <ContentPage IconImageSource="shopping_cart"
+                   Title="Page3">
         <Label>Page3</Label>
       </ContentPage>
-      <ContentPage Title="Page4">
+      <ContentPage IconImageSource="shopping_cart"
+                   Title="Page4">
         <Label>Page4</Label>
       </ContentPage>
-      <ContentPage Title="Page5">
+      <ContentPage IconImageSource="shopping_cart"
+                   Title="Page5">
         <Label>Page5</Label>
       </ContentPage>
     </TabbedPage>

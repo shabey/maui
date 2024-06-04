@@ -12,7 +12,7 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		public override string Issue => "[Android] TabbedPage in FlyoutPage in navigationPage does not fit all screen";
 
 		[Test]
-		public void Issue22755()
+		public void Issue22755Test()
 		{
 			App.WaitForElement("label");
 
