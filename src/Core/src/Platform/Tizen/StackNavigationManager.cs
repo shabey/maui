@@ -193,16 +193,16 @@ namespace Microsoft.Maui.Platform
 
 		NaviPage GetNavigationItem(IView page)
 		{
-			if (_pageMap.ContainsKey(page))
+			if (_pageMap.TryGetValue(page, out var naviPage))
 			{
-				return _pageMap[page];
+				return naviPage;
 			}
 
 			var content = page.ToPlatform(MauiContext!);
 			content.WidthSpecification = LayoutParamPolicies.MatchParent;
 			content.HeightSpecification = LayoutParamPolicies.MatchParent;
 
-			var naviPage = new NaviPage
+			naviPage = new NaviPage
 			{
 				Content = content,
 				WidthSpecification = LayoutParamPolicies.MatchParent,
