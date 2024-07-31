@@ -701,6 +701,6 @@ public class PlatformInterop {
      * Sets View.ClipBounds without creating a Rect object in C#
      */
     public static void setClipBounds(@NonNull View view, int left, int top, int right, int bottom) {
-        view.setClipBounds(new Rect(left, right, top, bottom));
+        view.setClipBounds(new Rect(left, top, right, bottom));
     }
 }
