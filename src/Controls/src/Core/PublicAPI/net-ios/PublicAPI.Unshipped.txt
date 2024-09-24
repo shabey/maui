@@ -258,6 +258,7 @@ Microsoft.Maui.Controls.TimeChangedEventArgs.NewTime.get -> System.TimeSpan
 Microsoft.Maui.Controls.TimeChangedEventArgs.OldTime.get -> System.TimeSpan
 Microsoft.Maui.Controls.TimeChangedEventArgs.TimeChangedEventArgs(System.TimeSpan oldTime, System.TimeSpan newTime) -> void
 Microsoft.Maui.Controls.TimePicker.TimeSelected -> System.EventHandler<Microsoft.Maui.Controls.TimeChangedEventArgs>
+Microsoft.Maui.Controls.Platform.ToolbarExtensions
 Microsoft.Maui.Controls.TitleBar
 Microsoft.Maui.Controls.TitleBar.Content.get -> Microsoft.Maui.IView?
 Microsoft.Maui.Controls.TitleBar.Content.set -> void
@@ -340,3 +341,28 @@ virtual Microsoft.Maui.Controls.Handlers.Items2.ItemsViewController2<TItemsView>
 virtual Microsoft.Maui.Controls.Handlers.Items2.ItemsViewDelegator2<TItemsView, TViewController>.GetVisibleItemsIndex() -> (bool VisibleItems, int First, int Center, int Last)
 virtual Microsoft.Maui.Controls.Handlers.Items2.ItemsViewHandler2<TItemsView>.UpdateLayout() -> void
 override Microsoft.Maui.Controls.Handlers.Compatibility.FrameRenderer.MovedToWindow() -> void
+Microsoft.Maui.Controls.Toolbar.NavigationController.get -> UIKit.UINavigationController!
+static Microsoft.Maui.Controls.Platform.ToolbarExtensions.UpdateBackButtonTitle(this UIKit.UINavigationController! navigationController, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Platform.ToolbarExtensions.UpdateBackButtonVisibility(this UIKit.UINavigationController! navigationController, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Platform.ToolbarExtensions.UpdateBarBackground(this UIKit.UINavigationBar! navigationBar, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Platform.ToolbarExtensions.UpdateBarTextColor(this UIKit.UINavigationBar! navigationBar, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Platform.ToolbarExtensions.UpdateTitleArea(this UIKit.UINavigationController! navigationController, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Platform.ToolbarExtensions.UpdateToolbarItems(this UIKit.UINavigationController! navigationController, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Toolbar.MapBackButtonTitle(Microsoft.Maui.Handlers.IToolbarHandler! handler, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Toolbar.MapBarBackground(Microsoft.Maui.Handlers.IToolbarHandler! handler, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Toolbar.MapBarTextColor(Microsoft.Maui.Handlers.IToolbarHandler! handler, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Toolbar.MapIconColor(Microsoft.Maui.Handlers.IToolbarHandler! handler, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Toolbar.MapTitleIcon(Microsoft.Maui.Handlers.IToolbarHandler! handler, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Toolbar.MapTitleView(Microsoft.Maui.Handlers.IToolbarHandler! handler, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+static Microsoft.Maui.Controls.Toolbar.MapToolbarItems(Microsoft.Maui.Handlers.IToolbarHandler! handler, Microsoft.Maui.Controls.Toolbar! toolbar) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapCurrentPage(Microsoft.Maui.Handlers.INavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapCurrentPage(Microsoft.Maui.Handlers.NavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapHideNavigationBarSeparator(Microsoft.Maui.Handlers.INavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapHideNavigationBarSeparator(Microsoft.Maui.Handlers.NavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapPreferredStatusBarUpdateAnimation(Microsoft.Maui.Handlers.NavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapPrefersHomeIndicatorAutoHidden(Microsoft.Maui.Handlers.INavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapPrefersHomeIndicatorAutoHidden(Microsoft.Maui.Handlers.NavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapStatusBarTextColorMode(Microsoft.Maui.Handlers.INavigationViewHandler handler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapStatusBarTextColorMode(Microsoft.Maui.Handlers.NavigationViewHandler viewHandler, Microsoft.Maui.Controls.NavigationPage navigationPage) -> void
+~static Microsoft.Maui.Controls.NavigationPage.MapToolbar(Microsoft.Maui.IElementHandler handler, Microsoft.Maui.IToolbarElement element) -> void
+~static Microsoft.Maui.Controls.Platform.NavigationPageExtensions.SetStatusBarStyle(this UIKit.UINavigationController platformView, Microsoft.Maui.Controls.PlatformConfiguration.iOSSpecific.StatusBarTextColorMode statusBarColorMode, Microsoft.Maui.Graphics.Color barTextColor) -> void

@@ -56,7 +56,7 @@ namespace Microsoft.Maui.Controls
 
 		partial void Init();
 
-#if WINDOWS || ANDROID || TIZEN
+#if WINDOWS || ANDROID || TIZEN || IOS || MACCATALYST // TODO: if this is everything, then we can start eventually removing stuff
 		const bool UseMauiHandler = true;
 #else
 		const bool UseMauiHandler = false;
@@ -773,7 +773,7 @@ namespace Microsoft.Maui.Controls
 					}).FireAndForget();
 			}
 
-			protected async override Task<Page> OnPopAsync(bool animated)
+			protected override async Task<Page> OnPopAsync(bool animated)
 			{
 				if (Owner.InternalChildren.Count == 1)
 				{
@@ -853,7 +853,14 @@ namespace Microsoft.Maui.Controls
 				return Owner.SendHandlerUpdateAsync(animated,
 					() =>
 					{
-						Owner.PushPage(root);
+						// This causes a problem on iOS because this will invoke handler property updates when this manipulates the InternalChildren and
+						// when the CurrentPage is changed. This screws up the navigation item title of the view controller already on the top of the stack 
+						// and this can mess up the back button title.
+						// This all happens before the platform/native navigation is done via RequestNavigation,
+						// and the handler properties are not updated after the platform navigation has completed here.
+						// We do invoke the handler property updates in the iOS platform navigation code manually to get around this
+						// instead of changing how these callbacks work, so as not to break other platforms.
+						Owner.PushPage(root);	
 					},
 					() =>
 					{
@@ -863,6 +870,7 @@ namespace Microsoft.Maui.Controls
 					},
 					() =>
 					{
+						// We could move the setting of the CurrentPage property here and that would be ideal for iOS navigation handling but it will break Android at the very least.
 						Owner.SendNavigated(previousPage, NavigationType.Push);
 						Owner?.Pushed?.Invoke(Owner, new NavigationEventArgs(root));
 					});
