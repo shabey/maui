@@ -13,6 +13,7 @@ public class Issue24878 : _IssuesUITest
 
 	[Test]
 	[Category(UITestCategories.ToolbarItem)]
+	[FailsOnWindows("ToolbarItem changes text color on theme change, but support for icon color is not implemented")]
 	public void ToolbarItemsShouldBeVisible()
 	{
 		App.WaitForElement("label");
