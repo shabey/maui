@@ -409,7 +409,7 @@ namespace Microsoft.Maui.Controls
 					return false;
 				}
 
-				image = image?.ImageWithRenderingMode(UIImageRenderingMode.AlwaysOriginal);
+				image = image?.ImageWithRenderingMode(UIImageRenderingMode.Automatic);
 
 				platformButton.SetImage(image, UIControlState.Normal);
 
