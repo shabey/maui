@@ -1,5 +1,4 @@
 ﻿using Android.Widget;
-using static System.Net.Mime.MediaTypeNames;
 using AGravityFlags = Android.Views.GravityFlags;
 
 namespace Microsoft.Maui.Platform
