@@ -14,5 +14,10 @@
               Placeholder="placeholder text"
               HeightRequest="250"
               WidthRequest="220" />
+
+    <Editor x:Name="editor1" FlowDirection="RightToLeft" AutomationId="RTLEditor" BackgroundColor="lightblue"
+          Placeholder="placeholder text"
+          HeightRequest="250"
+          WidthRequest="220" />
   </VerticalStackLayout>
 </ContentPage>

@@ -1,4 +1,4 @@
-﻿using Microsoft.Maui.Platform;
+﻿#if !MACCATALYST
 using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
@@ -12,23 +12,25 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 
 		[Test]
 		[Category(UITestCategories.Editor)]
-		[FailsOnMac]
-  		public void EditorPlaceholderRuntimeTextAlignmentChanged()
+		public void EditorPlaceholderRuntimeTextAlignmentChanged()
 		{
-			App.WaitForElement("Editor");
+			App.WaitForElement("RTLEditor");
 			App.Tap("Button");
 			VerifyScreenshot();
 		}
 
 		[Test]
 		[Category(UITestCategories.Editor)]
-		[FailsOnMac]
 		public void EditorRuntimeTextAlignmentChanged()
 		{
-			App.WaitForElement("Editor");
+			App.WaitForElement("RTLEditor");
 			App.EnterText("Editor", "Editor Text");
+			App.EnterText("RTLEditor", "RTL Editor");
+			var app = App as AppiumApp;
+			KeyboardScrolling.HideKeyboard(app!, app!.Driver, true);
 			App.Tap("ResetButton");
 			VerifyScreenshot();
-		}		
+		}
 	}
 }
+#endif
