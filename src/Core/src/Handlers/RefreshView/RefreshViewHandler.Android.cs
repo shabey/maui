@@ -9,6 +9,7 @@ namespace Microsoft.Maui.Handlers
 			return new MauiSwipeRefreshLayout(Context);
 		}
 
+		// RefreshView doesn't size itself correctly unless it's in a container
 		public override bool NeedsContainer => true;
 
 		protected override void ConnectHandler(MauiSwipeRefreshLayout platformView)
