@@ -428,29 +428,34 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			var item = args.Item;
 			if (args.Mode == ScrollToMode.Position)
 			{
-				item = FindBoundItem(args);
+				// Do not use `IGroupableItemsViewSource` since `UngroupedItemsSource` also implements that interface
+				if (ItemsViewAdapter.ItemsSource is UngroupedItemsSource)
+				{
+					return args.Index;
+				}
+				else if (ItemsViewAdapter.ItemsSource is IGroupableItemsViewSource groupItemSource)
+				{
+					item = FindBoundItemInGroup(args, groupItemSource);
+				}
 			}
 
 			return ItemsViewAdapter.GetPositionForItem(item);
 		}
 
-		private object FindBoundItem(ScrollToRequestEventArgs args)
+		private static object FindBoundItemInGroup(ScrollToRequestEventArgs args, IGroupableItemsViewSource groupItemSource)
 		{
-			if (args.Index >= ItemsViewAdapter.ItemsSource.Count)
-			{
-				return null;
-			}
-
-			if (ItemsViewAdapter.ItemsSource is IGroupableItemsViewSource groupItemSource &&
-				args.GroupIndex >= 0 &&
+			if (args.GroupIndex >= 0 &&
 				args.GroupIndex < groupItemSource.Count)
 			{
 				var group = groupItemSource.GetGroupItemsViewSource(args.GroupIndex);
 
-				// NOTE: GetItem calls AdjustIndexRequest, which subtracts 1 if we have a header
-				return group.GetItem(args.Index + 1);
+				if (group is not null)
+				{
+					// GetItem calls AdjustIndexRequest, which subtracts 1 if we have a header (UngroupedItemsSource does not do this)
+					return group.GetItem(args.Index + 1);
+				}
 			}
-			return ItemsViewAdapter.ItemsSource.GetItem(args.Index);
+			return groupItemSource.GetItem(args.Index);
 		}
 
 		protected virtual void UpdateItemSpacing()
@@ -526,7 +531,9 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 		protected override void OnLayout(bool changed, int l, int t, int r, int b)
 		{
 			base.OnLayout(changed, l, t, r, b);
+#pragma warning disable CS0618 // Obsolete
 			AViewCompat.SetClipBounds(this, new ARect(0, 0, Width, Height));
+#pragma warning restore CS0618 // Obsolete
 
 			// After a direct (non-animated) scroll operation, we may need to make adjustments
 			// to align the target item; if an adjustment is pending, execute it here.
@@ -562,11 +569,12 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					itemCount++;
 			}
 
-			var showEmptyView = ItemsView?.EmptyView != null && ItemsViewAdapter.ItemCount == itemCount;
+			var showEmptyView = (ItemsView?.EmptyView is not null || ItemsView?.EmptyViewTemplate is not null) && ItemsViewAdapter.ItemCount == itemCount;
 
 			var currentAdapter = GetAdapter();
 			if (showEmptyView && currentAdapter != _emptyViewAdapter)
 			{
+				GetRecycledViewPool().Clear();
 				SwapAdapter(_emptyViewAdapter, true);
 
 				// TODO hartez 2018/10/24 17:34:36 If this works, cache this layout manager as _emptyLayoutManager	
@@ -575,6 +583,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			}
 			else if (!showEmptyView && currentAdapter != ItemsViewAdapter)
 			{
+				GetRecycledViewPool().Clear();
 				SwapAdapter(ItemsViewAdapter, true);
 				UpdateLayoutManager();
 			}
