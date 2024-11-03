@@ -464,6 +464,9 @@ namespace Microsoft.Maui.Controls
 		public static void MapText(IButtonHandler handler, Button button)
 		{
 			handler.PlatformView?.UpdateText(button);
+
+			// Any text update requires that we update any attributed string formatting
+			MapFormatting(handler, button);
 		}
 
 		internal static void MapBorderWidth(IButtonHandler handler, Button button)
@@ -476,6 +479,12 @@ namespace Microsoft.Maui.Controls
 			base.OnHandlerChangingCore(args);
 			_originalImageSize = CGSize.Empty;
 			_originalCGImage = null;
+		}
+
+		private static void MapFormatting(IButtonHandler handler, IText button)
+		{
+			// Update all of the attributed text formatting properties
+			handler.PlatformView?.UpdateCharacterSpacing(button);
 		}
 	}
 }
