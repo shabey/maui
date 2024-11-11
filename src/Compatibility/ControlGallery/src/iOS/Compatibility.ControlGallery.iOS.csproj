@@ -9,7 +9,9 @@
     <Nullable>disable</Nullable>
     <!--<DefineConstants>$(DefineConstants);HAVE_OPENTK</DefineConstants>-->
     <!--<MtouchLink Condition="'$(CI)' == 'true'">Full</MtouchLink>-->
-    <NoWarn>0612</NoWarn>
+    <NoWarn>0612;CS0672;CS0618</NoWarn>
+    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+    <TargetPlatformMinVersion>15.0</TargetPlatformMinVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
@@ -54,4 +56,3 @@
   <Import Project="$(MauiSrcDirectory)Maui.InTree.props" Condition=" '$(UseMaui)' != 'true' " />
 
 </Project>
-

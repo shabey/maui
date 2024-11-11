@@ -42,18 +42,23 @@ namespace Maui.Controls.Sample.Pages
 			bbb.IsEnabled = false;
 
 			ContextMenuWebView.HandlerChanged += OnWebViewHandlerChanged;
+
+			Increment10MenuFlyoutItem.KeyboardAccelerators.Add(new KeyboardAccelerator() { Modifiers = KeyboardAcceleratorModifiers.Alt | KeyboardAcceleratorModifiers.Ctrl, Key = "A" });
+			Increment20MenuFlyoutItem.KeyboardAccelerators.Add(new KeyboardAccelerator() { Modifiers = KeyboardAcceleratorModifiers.Shift, Key = "B" });
+			Increment1000MenuFlyoutItem.KeyboardAccelerators.Add(new KeyboardAccelerator() { Modifiers = KeyboardAcceleratorModifiers.Ctrl, Key = "t" });
+			Increment1000000MenuFlyoutItem.KeyboardAccelerators.Add(new KeyboardAccelerator() { Modifiers = KeyboardAcceleratorModifiers.Alt, Key = "b" });
+			bbb.KeyboardAccelerators.Add(new KeyboardAccelerator() { Key = "C" });
 		}
 
-
-		void OnWebViewHandlerChanged(object sender, EventArgs e)
+		void OnWebViewHandlerChanged(object? sender, EventArgs e)
 		{
 			if (ContextMenuWebView.Handler != null)
 			{
 #if WINDOWS
-				var webView2 = (Microsoft.UI.Xaml.Controls.WebView2)ContextMenuWebView.Handler.PlatformView;
+				var webView2 = (Microsoft.UI.Xaml.Controls.WebView2)ContextMenuWebView.Handler.PlatformView!;
 				webView2.CoreWebView2Initialized += OnWebView2CoreWebView2Initialized;
 #elif MACCATALYST
-				var wkWebView = (WebKit.WKWebView)ContextMenuWebView.Handler.PlatformView;
+				var wkWebView = (WebKit.WKWebView)ContextMenuWebView.Handler.PlatformView!;
 				// TODO: Need to figure out how to disable default WKWebView context menu so that
 				// the custom context flyout is shown instead. (It does sometimes show up for a second
 				// but then it goes back to the default web context menu.)
@@ -143,7 +148,7 @@ namespace Maui.Controls.Sample.Pages
 
 		void OnAddMenuClicked(object sender, EventArgs e)
 		{
-			var contextFlyout = ((MenuFlyoutItem)sender).Parent as MenuFlyout;
+			var contextFlyout = (((MenuFlyoutItem)sender).Parent as MenuFlyout)!;
 			AddNewMenu(contextFlyout, "top-level");
 		}
 

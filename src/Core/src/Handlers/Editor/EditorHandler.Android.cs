@@ -45,6 +45,7 @@ namespace Microsoft.Maui.Handlers
 		{
 			platformView.ViewAttachedToWindow += OnPlatformViewAttachedToWindow;
 			platformView.TextChanged += OnTextChanged;
+			platformView.FocusChange += OnFocusChange;
 		}
 
 		// TODO: NET8 issoto - Change the platformView type to MauiAppCompatEditText
@@ -52,6 +53,7 @@ namespace Microsoft.Maui.Handlers
 		{
 			platformView.ViewAttachedToWindow -= OnPlatformViewAttachedToWindow;
 			platformView.TextChanged -= OnTextChanged;
+			platformView.FocusChange -= OnFocusChange;
 
 			// TODO: NET8 issoto - Remove the casting once we can set the TPlatformView generic type as MauiAppCompatEditText
 			if (_set && platformView is MauiAppCompatEditText editText)
@@ -90,6 +92,9 @@ namespace Microsoft.Maui.Handlers
 		public static void MapIsTextPredictionEnabled(IEditorHandler handler, IEditor editor) =>
 			handler.PlatformView?.UpdateIsTextPredictionEnabled(editor);
 
+		public static void MapIsSpellCheckEnabled(IEditorHandler handler, IEditor editor) =>
+			handler.PlatformView?.UpdateIsSpellCheckEnabled(editor);
+
 		public static void MapFont(IEditorHandler handler, IEditor editor) =>
 			handler.PlatformView?.UpdateFont(editor, handler.GetRequiredService<IFontManager>());
 
@@ -99,8 +104,12 @@ namespace Microsoft.Maui.Handlers
 		public static void MapVerticalTextAlignment(IEditorHandler handler, IEditor editor) =>
 			handler.PlatformView?.UpdateVerticalTextAlignment(editor);
 
-		public static void MapKeyboard(IEditorHandler handler, IEditor editor) =>
+		public static void MapKeyboard(IEditorHandler handler, IEditor editor)
+		{
+			handler.UpdateValue(nameof(IEditor.Text));
+
 			handler.PlatformView?.UpdateKeyboard(editor);
+		}
 
 		public static void MapCursorPosition(IEditorHandler handler, ITextInput editor) =>
 			handler.PlatformView?.UpdateCursorPosition(editor);
@@ -144,6 +153,14 @@ namespace Microsoft.Maui.Handlers
 
 			if (VirtualView.SelectionLength != selectedTextLength)
 				VirtualView.SelectionLength = selectedTextLength;
+		}
+
+		private void OnFocusChange(object? sender, FocusChangeEventArgs e)
+		{
+			if (!e.HasFocus)
+			{
+			  VirtualView?.Completed();
+			}
 		}
 
 		public override void PlatformArrange(Rect frame)

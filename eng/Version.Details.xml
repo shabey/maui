@@ -1,67 +1,50 @@
 <Dependencies>
   <ProductDependencies>
-    <Dependency Name="Microsoft.WindowsAppSDK" Version="0.0.1">
-      <Uri>https://dev.azure.com/microsoft/ProjectReunion/_git/ProjectReunionInternal</Uri>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Authorization" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Authentication.Facebook" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Authentication.Google" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Authentication.MicrosoftAccount" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Components" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Components.Analyzers" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Components.Forms" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Components.WebView" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Components.Web" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.AspNetCore.Metadata" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.JSInterop" Version="7.0.0">
-      <Uri>https://github.com/dotnet/aspnetcore</Uri>
-      <Sha>d50065c4a4fe31a66a1cc2e1a31896d30464da13</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.TemplateEngine.Tasks" Version="7.0.100-preview.2.22102.8">
-      <Uri>https://github.com/dotnet/templating</Uri>
-      <Sha>3f4da9ced34942d83054e647f3b1d9d7dde281e8</Sha>
-    </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.TestRunners.Common" Version="8.0.0-prerelease.23312.1">
+    <Dependency Name="Microsoft.DotNet.XHarness.TestRunners.Common" Version="10.0.0-prerelease.24524.9">
       <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>5dabb78620cf157a43de27e8d1b84786eb1baabc</Sha>
+      <Sha>b12e9b940300433453aa7d57ff094aad50ce782c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.TestRunners.Xunit" Version="8.0.0-prerelease.23312.1">
+    <Dependency Name="Microsoft.DotNet.XHarness.TestRunners.Xunit" Version="10.0.0-prerelease.24524.9">
       <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>5dabb78620cf157a43de27e8d1b84786eb1baabc</Sha>
+      <Sha>b12e9b940300433453aa7d57ff094aad50ce782c</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="8.0.0-prerelease.23312.1">
+    <Dependency Name="Microsoft.DotNet.XHarness.CLI" Version="10.0.0-prerelease.24524.9">
       <Uri>https://github.com/dotnet/xharness</Uri>
-      <Sha>5dabb78620cf157a43de27e8d1b84786eb1baabc</Sha>
+      <Sha>b12e9b940300433453aa7d57ff094aad50ce782c</Sha>
     </Dependency>
   </ProductDependencies>
+  <ToolsetDependencies>
+    <Dependency Name="Microsoft.DotNet.Build.Tasks.Feed" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.Arcade.Sdk" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.Build.Tasks.Installers" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.Build.Tasks.Workloads" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.SharedFramework.Sdk" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.RemoteExecutor" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+    <Dependency Name="Microsoft.DotNet.XUnitExtensions" Version="9.0.0-beta.24509.3">
+      <Uri>https://github.com/dotnet/arcade</Uri>
+      <Sha>05c72bb3c9b38138276a8029017f2ef905dcc7fa</Sha>
+    </Dependency>
+  </ToolsetDependencies>
 </Dependencies>

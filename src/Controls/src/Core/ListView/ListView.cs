@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using Microsoft.Maui.Controls.Internals;
+using Microsoft.Maui.Controls.Xaml;
 using Microsoft.Maui.Controls.Xaml.Diagnostics;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Graphics;
@@ -17,59 +18,60 @@ namespace Microsoft.Maui.Controls
 	/// <include file="../../docs/Microsoft.Maui.Controls/ListView.xml" path="Type[@FullName='Microsoft.Maui.Controls.ListView']/Docs/*" />
 	public class ListView : ItemsView<Cell>, IListViewController, IElementConfiguration<ListView>, IVisualTreeElement
 	{
-		readonly List<Element> _logicalChildren = new List<Element>();
-		IReadOnlyList<IVisualTreeElement> IVisualTreeElement.GetVisualChildren() => _logicalChildren;
-
-		internal override IEnumerable<Element> ChildrenNotDrawnByThisElement => _logicalChildren;
+		// The ListViewRenderer has some odd behavior with LogicalChildren
+		// https://github.com/xamarin/Xamarin.Forms/pull/12057
+		// Ideally we'd fix the ListViewRenderer so we don't have this separation
+		readonly List<Element> _visualChildren = new List<Element>();
+		IReadOnlyList<IVisualTreeElement> IVisualTreeElement.GetVisualChildren() => _visualChildren;
 
 		/// <summary>Bindable property for <see cref="IsPullToRefreshEnabled"/>.</summary>
-		public static readonly BindableProperty IsPullToRefreshEnabledProperty = BindableProperty.Create("IsPullToRefreshEnabled", typeof(bool), typeof(ListView), false);
+		public static readonly BindableProperty IsPullToRefreshEnabledProperty = BindableProperty.Create(nameof(IsPullToRefreshEnabled), typeof(bool), typeof(ListView), false);
 
 		/// <summary>Bindable property for <see cref="IsRefreshing"/>.</summary>
-		public static readonly BindableProperty IsRefreshingProperty = BindableProperty.Create("IsRefreshing", typeof(bool), typeof(ListView), false, BindingMode.TwoWay);
+		public static readonly BindableProperty IsRefreshingProperty = BindableProperty.Create(nameof(IsRefreshing), typeof(bool), typeof(ListView), false, BindingMode.TwoWay);
 
 		/// <summary>Bindable property for <see cref="RefreshCommand"/>.</summary>
-		public static readonly BindableProperty RefreshCommandProperty = BindableProperty.Create("RefreshCommand", typeof(ICommand), typeof(ListView), null, propertyChanged: OnRefreshCommandChanged);
+		public static readonly BindableProperty RefreshCommandProperty = BindableProperty.Create(nameof(RefreshCommand), typeof(ICommand), typeof(ListView), null, propertyChanged: OnRefreshCommandChanged);
 
 		/// <summary>Bindable property for <see cref="Header"/>.</summary>
-		public static readonly BindableProperty HeaderProperty = BindableProperty.Create("Header", typeof(object), typeof(ListView), null, propertyChanged: OnHeaderChanged);
+		public static readonly BindableProperty HeaderProperty = BindableProperty.Create(nameof(Header), typeof(object), typeof(ListView), null, propertyChanged: OnHeaderChanged);
 
 		/// <summary>Bindable property for <see cref="HeaderTemplate"/>.</summary>
-		public static readonly BindableProperty HeaderTemplateProperty = BindableProperty.Create("HeaderTemplate", typeof(DataTemplate), typeof(ListView), null, propertyChanged: OnHeaderTemplateChanged,
+		public static readonly BindableProperty HeaderTemplateProperty = BindableProperty.Create(nameof(HeaderTemplate), typeof(DataTemplate), typeof(ListView), null, propertyChanged: OnHeaderTemplateChanged,
 			validateValue: ValidateHeaderFooterTemplate);
 
 		/// <summary>Bindable property for <see cref="Footer"/>.</summary>
-		public static readonly BindableProperty FooterProperty = BindableProperty.Create("Footer", typeof(object), typeof(ListView), null, propertyChanged: OnFooterChanged);
+		public static readonly BindableProperty FooterProperty = BindableProperty.Create(nameof(Footer), typeof(object), typeof(ListView), null, propertyChanged: OnFooterChanged);
 
 		/// <summary>Bindable property for <see cref="FooterTemplate"/>.</summary>
-		public static readonly BindableProperty FooterTemplateProperty = BindableProperty.Create("FooterTemplate", typeof(DataTemplate), typeof(ListView), null, propertyChanged: OnFooterTemplateChanged,
+		public static readonly BindableProperty FooterTemplateProperty = BindableProperty.Create(nameof(FooterTemplate), typeof(DataTemplate), typeof(ListView), null, propertyChanged: OnFooterTemplateChanged,
 			validateValue: ValidateHeaderFooterTemplate);
 
 		/// <summary>Bindable property for <see cref="SelectedItem"/>.</summary>
-		public static readonly BindableProperty SelectedItemProperty = BindableProperty.Create("SelectedItem", typeof(object), typeof(ListView), null, BindingMode.OneWayToSource,
+		public static readonly BindableProperty SelectedItemProperty = BindableProperty.Create(nameof(SelectedItem), typeof(object), typeof(ListView), null, BindingMode.OneWayToSource,
 			propertyChanged: OnSelectedItemChanged);
 
 		/// <summary>Bindable property for <see cref="SelectionMode"/>.</summary>
 		public static readonly BindableProperty SelectionModeProperty = BindableProperty.Create(nameof(SelectionMode), typeof(ListViewSelectionMode), typeof(ListView), ListViewSelectionMode.Single);
 
 		/// <summary>Bindable property for <see cref="HasUnevenRows"/>.</summary>
-		public static readonly BindableProperty HasUnevenRowsProperty = BindableProperty.Create("HasUnevenRows", typeof(bool), typeof(ListView), false);
+		public static readonly BindableProperty HasUnevenRowsProperty = BindableProperty.Create(nameof(HasUnevenRows), typeof(bool), typeof(ListView), false);
 
 		/// <summary>Bindable property for <see cref="RowHeight"/>.</summary>
-		public static readonly BindableProperty RowHeightProperty = BindableProperty.Create("RowHeight", typeof(int), typeof(ListView), -1);
+		public static readonly BindableProperty RowHeightProperty = BindableProperty.Create(nameof(RowHeight), typeof(int), typeof(ListView), -1);
 
 		/// <summary>Bindable property for <see cref="GroupHeaderTemplate"/>.</summary>
-		public static readonly BindableProperty GroupHeaderTemplateProperty = BindableProperty.Create("GroupHeaderTemplate", typeof(DataTemplate), typeof(ListView), null,
+		public static readonly BindableProperty GroupHeaderTemplateProperty = BindableProperty.Create(nameof(GroupHeaderTemplate), typeof(DataTemplate), typeof(ListView), null,
 			propertyChanged: OnGroupHeaderTemplateChanged);
 
 		/// <summary>Bindable property for <see cref="IsGroupingEnabled"/>.</summary>
-		public static readonly BindableProperty IsGroupingEnabledProperty = BindableProperty.Create("IsGroupingEnabled", typeof(bool), typeof(ListView), false);
+		public static readonly BindableProperty IsGroupingEnabledProperty = BindableProperty.Create(nameof(IsGroupingEnabled), typeof(bool), typeof(ListView), false);
 
 		/// <summary>Bindable property for <see cref="SeparatorVisibility"/>.</summary>
-		public static readonly BindableProperty SeparatorVisibilityProperty = BindableProperty.Create("SeparatorVisibility", typeof(SeparatorVisibility), typeof(ListView), SeparatorVisibility.Default);
+		public static readonly BindableProperty SeparatorVisibilityProperty = BindableProperty.Create(nameof(SeparatorVisibility), typeof(SeparatorVisibility), typeof(ListView), SeparatorVisibility.Default);
 
 		/// <summary>Bindable property for <see cref="SeparatorColor"/>.</summary>
-		public static readonly BindableProperty SeparatorColorProperty = BindableProperty.Create("SeparatorColor", typeof(Color), typeof(ListView), null);
+		public static readonly BindableProperty SeparatorColorProperty = BindableProperty.Create(nameof(SeparatorColor), typeof(Color), typeof(ListView), null);
 
 		/// <summary>Bindable property for <see cref="RefreshControlColor"/>.</summary>
 		public static readonly BindableProperty RefreshControlColorProperty = BindableProperty.Create(nameof(RefreshControlColor), typeof(Color), typeof(ListView), null);
@@ -150,6 +152,7 @@ namespace Microsoft.Maui.Controls
 		}
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/ListView.xml" path="//Member[@MemberName='GroupDisplayBinding']/Docs/*" />
+		[DoesNotInheritDataType]
 		public BindingBase GroupDisplayBinding
 		{
 			get { return _groupDisplayBinding; }
@@ -175,6 +178,7 @@ namespace Microsoft.Maui.Controls
 		}
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/ListView.xml" path="//Member[@MemberName='GroupShortNameBinding']/Docs/*" />
+		[DoesNotInheritDataType]
 		public BindingBase GroupShortNameBinding
 		{
 			get { return _groupShortNameBinding; }
@@ -354,7 +358,7 @@ namespace Microsoft.Maui.Controls
 			if (!RefreshAllowed)
 				return;
 
-			SetValueCore(IsRefreshingProperty, true);
+			SetValue(IsRefreshingProperty, true);
 			OnRefreshing(EventArgs.Empty);
 
 			ICommand command = RefreshCommand;
@@ -364,7 +368,7 @@ namespace Microsoft.Maui.Controls
 		/// <include file="../../docs/Microsoft.Maui.Controls/ListView.xml" path="//Member[@MemberName='EndRefresh']/Docs/*" />
 		public void EndRefresh()
 		{
-			SetValueCore(IsRefreshingProperty, false);
+			SetValue(IsRefreshingProperty, false);
 		}
 
 		public event EventHandler<ItemVisibilityEventArgs> ItemAppearing;
@@ -383,7 +387,7 @@ namespace Microsoft.Maui.Controls
 		public void ScrollTo(object item, ScrollToPosition position, bool animated)
 		{
 			if (!Enum.IsDefined(typeof(ScrollToPosition), position))
-				throw new ArgumentException("position is not a valid ScrollToPosition", "position");
+				throw new ArgumentException("position is not a valid ScrollToPosition", nameof(position));
 
 			var args = new ScrollToRequestedEventArgs(item, position, animated);
 			if (IsPlatformEnabled)
@@ -398,7 +402,7 @@ namespace Microsoft.Maui.Controls
 			if (!IsGroupingEnabled)
 				throw new InvalidOperationException("Grouping is not enabled");
 			if (!Enum.IsDefined(typeof(ScrollToPosition), position))
-				throw new ArgumentException("position is not a valid ScrollToPosition", "position");
+				throw new ArgumentException("position is not a valid ScrollToPosition", nameof(position));
 
 			var args = new ScrollToRequestedEventArgs(item, group, position, animated);
 			if (IsPlatformEnabled)
@@ -410,10 +414,11 @@ namespace Microsoft.Maui.Controls
 		protected override Cell CreateDefault(object item)
 		{
 			TextCell textCell = new TextCell();
-			textCell.SetBinding(TextCell.TextProperty, ".", converter: _toStringValueConverter);
+			textCell.SetBinding(TextCell.TextProperty, static (object cell) => cell, BindingMode.OneWay, _toStringValueConverter);
 			return textCell;
 		}
 
+		[Obsolete("Use MeasureOverride instead")]
 		protected override SizeRequest OnMeasure(double widthConstraint, double heightConstraint)
 		{
 			var minimumSize = new Size(40, 40);
@@ -445,7 +450,7 @@ namespace Microsoft.Maui.Controls
 
 			if (content != null)
 			{
-				_logicalChildren.Add(content);
+				_visualChildren.Add(content);
 				content.Parent = this;
 				VisualDiagnostics.OnChildAdded(this, content);
 			}
@@ -457,10 +462,10 @@ namespace Microsoft.Maui.Controls
 
 			if (content == null)
 				return;
-			var index = _logicalChildren.IndexOf(content);
+			var index = _visualChildren.IndexOf(content);
 			if (index == -1)
 				return;
-			_logicalChildren.RemoveAt(index);
+			_visualChildren.RemoveAt(index);
 			content.Parent = null;
 			VisualDiagnostics.OnChildRemoved(this, content, index);
 
@@ -516,7 +521,7 @@ namespace Microsoft.Maui.Controls
 
 			// Set SelectedItem before any events so we don't override any changes they may have made.
 			if (SelectionMode != ListViewSelectionMode.None)
-				SetValueCore(SelectedItemProperty, cell?.BindingContext, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource | (changed ? SetValueFlags.RaiseOnEqual : 0));
+				SetValueCore(SelectedItemProperty, cell?.BindingContext, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource | (changed ? SetValueFlags.RaiseOnEqual : 0), SetValuePrivateFlags.Default, SetterSpecificity.FromHandler);
 
 			cell?.OnTapped();
 
@@ -542,7 +547,7 @@ namespace Microsoft.Maui.Controls
 
 			// Set SelectedItem before any events so we don't override any changes they may have made.
 			if (SelectionMode != ListViewSelectionMode.None)
-				SetValueCore(SelectedItemProperty, cell?.BindingContext, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource | (changed ? SetValueFlags.RaiseOnEqual : 0));
+				SetValueCore(SelectedItemProperty, cell?.BindingContext, SetValueFlags.ClearOneWayBindings | SetValueFlags.ClearDynamicResource | (changed ? SetValueFlags.RaiseOnEqual : 0), SetValuePrivateFlags.Default, SetterSpecificity.FromHandler);
 
 			if (isContextMenuRequested || cell == null)
 			{

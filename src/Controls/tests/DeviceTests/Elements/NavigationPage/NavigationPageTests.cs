@@ -4,12 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using Microsoft.Maui.Controls.Handlers;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
 using Microsoft.Maui.Controls.Handlers.Items;
+using Microsoft.Maui.Controls.Shapes;
 using Microsoft.Maui.DeviceTests.Stubs;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Hosting;
 using Xunit;
+using static Microsoft.Maui.DeviceTests.AssertHelpers;
 
 namespace Microsoft.Maui.DeviceTests
 {
@@ -31,12 +34,19 @@ namespace Microsoft.Maui.DeviceTests
 					handlers.AddHandler(typeof(NavigationPage), typeof(NavigationViewHandler));
 					handlers.AddHandler(typeof(TabbedPage), typeof(TabbedViewHandler));
 #endif
-					handlers.AddHandler<Page, PageHandler>();
-					handlers.AddHandler<Window, WindowHandlerStub>();
-					handlers.AddHandler<Frame, FrameRenderer>();
-					handlers.AddHandler<Label, LabelHandler>();
+					handlers.AddHandler(typeof(FlyoutPage), typeof(FlyoutViewHandler));
+					handlers.AddHandler(typeof(ScrollView), typeof(ScrollViewHandler));
+					handlers.AddHandler<Border, BorderHandler>();
 					handlers.AddHandler<Button, ButtonHandler>();
+					handlers.AddHandler<CarouselView, CarouselViewHandler>();
 					handlers.AddHandler<CollectionView, CollectionViewHandler>();
+					handlers.AddHandler<IContentView, ContentViewHandler>();
+					handlers.AddHandler<Label, LabelHandler>();
+					handlers.AddHandler<Layout, LayoutHandler>();
+					handlers.AddHandler<Page, PageHandler>();
+					handlers.AddHandler<RadioButton, RadioButtonHandler>();
+					handlers.AddHandler<Shape, ShapeViewHandler>();
+					handlers.AddHandler<Window, WindowHandlerStub>();
 				});
 			});
 		}
@@ -49,7 +59,7 @@ namespace Microsoft.Maui.DeviceTests
 
 			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(navPage), async (handler) =>
 			{
-				await navPage.PushAsync(new NavigationPage(new ContentPage() { Content = new Frame(), Title = "Detail" }));
+				await navPage.PushAsync(new NavigationPage(new ContentPage() { Content = new Border(), Title = "Detail" }));
 				await navPage.PopAsync();
 			});
 		}
@@ -91,6 +101,55 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.False(pageFiredNavigated);
 		}
 
+		[Fact]
+		public async Task PopLifeCycle()
+		{
+			SetupBuilder();
+			
+			bool appearingShouldFireOnInitialPage = false;
+			ContentPage initialPage = new ContentPage();
+			ContentPage pushedPage = new ContentPage();
+
+			ContentPage rootPageFiresAppearingAfterPop = null;
+			ContentPage pageDisappeared = null;
+
+			NavigationPage nav = new NavigationPage(initialPage);
+
+			// Because of queued change propagation on BPs
+			// sometimes the appearing will fire a bit later than we expect.
+			// This ensures the first one fires before we move on
+			TaskCompletionSource waitForFirstAppearing = new TaskCompletionSource();
+			initialPage.Appearing += OnInitialPageAppearing;
+			void OnInitialPageAppearing(object sender, EventArgs e)
+			{
+				waitForFirstAppearing.SetResult();
+				initialPage.Appearing -= OnInitialPageAppearing;
+			}
+
+			await CreateHandlerAndAddToWindow(nav, async () =>
+			{
+				await waitForFirstAppearing.Task.WaitAsync(TimeSpan.FromSeconds(2));
+				initialPage.Appearing += (sender, _) =>
+				{
+					Assert.True(appearingShouldFireOnInitialPage);
+					rootPageFiresAppearingAfterPop = (ContentPage)sender;
+				};
+
+				pushedPage.Disappearing += (sender, _)
+					=> pageDisappeared = (ContentPage)sender;
+
+				await nav.PushAsync(pushedPage).WaitAsync(TimeSpan.FromSeconds(2));
+				Assert.Null(rootPageFiresAppearingAfterPop);
+				appearingShouldFireOnInitialPage = true;
+				Assert.Null(pageDisappeared);
+
+				await nav.PopAsync().WaitAsync(TimeSpan.FromSeconds(2));
+
+				Assert.Equal(initialPage, rootPageFiresAppearingAfterPop);
+				Assert.Equal(pushedPage, pageDisappeared);
+			});
+		}
+
 #if !IOS && !MACCATALYST
 
 		[Fact(DisplayName = "Swapping Navigation Toggles BackButton Correctly")]
@@ -118,7 +177,7 @@ namespace Microsoft.Maui.DeviceTests
 				await (navPage.CurrentNavigationTask ?? Task.CompletedTask);
 
 				// Wait for back button to hide
-				Assert.True(await AssertionExtensions.Wait(() => !IsBackButtonVisible(handler)));
+				await AssertEventually(() => !IsBackButtonVisible(handler));
 
 				stackNavigationView.RequestNavigation(
 					   new NavigationRequest(_currentNavStack, true));
@@ -127,8 +186,8 @@ namespace Microsoft.Maui.DeviceTests
 				await (navPage.CurrentNavigationTask ?? Task.CompletedTask);
 
 				// Wait for back button to reveal itself
-				Assert.True(await AssertionExtensions.Wait(() => IsBackButtonVisible(handler)));
-			}, timeOut: TimeSpan.FromMinutes(2));
+				await AssertEventually(() => IsBackButtonVisible(handler));
+			});
 		}
 
 		[Fact(DisplayName = "Back Button Visibility Changes with push/pop")]
@@ -172,11 +231,11 @@ namespace Microsoft.Maui.DeviceTests
 
 			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(navPage), async (handler) =>
 			{
-				Assert.True(await AssertionExtensions.Wait(() => IsNavigationBarVisible(handler)));
+				await AssertEventually(() => IsNavigationBarVisible(handler));
 				NavigationPage.SetHasNavigationBar(navPage.CurrentPage, false);
-				Assert.True(await AssertionExtensions.Wait(() => !IsNavigationBarVisible(handler)));
+				await AssertEventually(() => !IsNavigationBarVisible(handler));
 				NavigationPage.SetHasNavigationBar(navPage.CurrentPage, true);
-				Assert.True(await AssertionExtensions.Wait(() => IsNavigationBarVisible(handler)));
+				await AssertEventually(() => IsNavigationBarVisible(handler));
 			});
 		}
 
@@ -192,7 +251,7 @@ namespace Microsoft.Maui.DeviceTests
 				var contentPage = new ContentPage();
 				window.Page = contentPage;
 				await OnLoadedAsync(contentPage);
-				Assert.True(await AssertionExtensions.Wait(() => !IsNavigationBarVisible(handler)));
+				await AssertEventually(() => !IsNavigationBarVisible(handler));
 			});
 		}
 
@@ -292,13 +351,48 @@ namespace Microsoft.Maui.DeviceTests
 			});
 		}
 
-		[Fact(DisplayName = "NavigationPage Does Not Leak"
+		[Fact(DisplayName = "Does Not Leak"
 #if WINDOWS
-			,Skip = "Failing"
+			, Skip = "Failing"
 #endif
-			)]
+		)]
 		public async Task DoesNotLeak()
 		{
+			SetupBuilder();
+			var references = new List<WeakReference>();
+
+			{
+				var navPage = new NavigationPage(new ContentPage());
+				var window = new Window(navPage);
+
+				await CreateHandlerAndAddToWindow<WindowHandlerStub>(window, (handler) =>
+				{
+					references.Add(new(navPage));
+					references.Add(new(navPage.Handler));
+					references.Add(new(navPage.Handler.PlatformView));
+					references.Add(new(handler));
+
+					// Just replace the page with a new one
+					window.Page = new ContentPage();
+				});
+			}
+
+			await AssertionExtensions.WaitForGC(references.ToArray());
+		}
+
+		[Fact(DisplayName = "Child Pages Do Not Leak"
+#if WINDOWS
+			, Skip = "Failing/unstable"
+#endif
+		)]
+		public async Task ChildPagesDoNotLeak()
+		{
+
+#if ANDROID
+			if (!OperatingSystem.IsAndroidVersionAtLeast(30))
+				return;
+#endif
+
 			SetupBuilder();
 			WeakReference pageReference = null;
 			var navPage = new NavigationPage(new ContentPage { Title = "Page 1" });
@@ -310,28 +404,22 @@ namespace Microsoft.Maui.DeviceTests
 					Title = "Page 2",
 					Content = new VerticalStackLayout
 					{
-						new Label(),
 						new Button(),
+						new CarouselView(),
 						new CollectionView(),
+						new ContentView(),
+						new Label(),
+						new ScrollView(),
+						new RadioButton(),
 					}
 				};
+				NavigationPage.SetTitleView(page, new Label() { Text = "Title View" });
 				pageReference = new WeakReference(page);
 				await navPage.Navigation.PushAsync(page);
 				await navPage.Navigation.PopAsync();
 			});
 
-			// As we add more controls to this test, more GCs will be required
-			for (int i = 0; i < 16; i++)
-			{
-				if (!pageReference.IsAlive)
-					break;
-				await Task.Yield();
-				GC.Collect();
-				GC.WaitForPendingFinalizers();
-			}
-
-			Assert.NotNull(pageReference);
-			Assert.False(pageReference.IsAlive, "Page should not be alive!");
+			await AssertionExtensions.WaitForGC(pageReference);
 		}
 
 		[Fact(DisplayName = "Can Reuse Pages"
@@ -354,6 +442,20 @@ namespace Microsoft.Maui.DeviceTests
 				await navPage.Navigation.PopAsync();
 				await navPage.Navigation.PushAsync(reusedPage);
 				await OnLoadedAsync(reusedPage.Content);
+			});
+		}
+
+		[Fact]
+		public async Task SettingTitleIconImageSourceDoesntCrash()
+		{
+			SetupBuilder();
+			var navPage = new NavigationPage(new ContentPage()) { Title = "App Page" };
+
+			await CreateHandlerAndAddToWindow<WindowHandlerStub>(new Window(navPage), async (handler) =>
+			{
+				var page = new ContentPage() { Content = new Border(), Title = "Detail" };
+				await navPage.PushAsync(new NavigationPage(page));
+				NavigationPage.SetTitleIconImageSource(page, "red.png");
 			});
 		}
 	}

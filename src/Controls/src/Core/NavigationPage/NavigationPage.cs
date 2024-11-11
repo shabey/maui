@@ -40,9 +40,10 @@ namespace Microsoft.Maui.Controls
 		public static readonly BindableProperty IconColorProperty = BindableProperty.CreateAttached("IconColor", typeof(Color), typeof(NavigationPage), null);
 
 		/// <summary>Bindable property for attached property <c>TitleView</c>.</summary>
-		public static readonly BindableProperty TitleViewProperty = BindableProperty.CreateAttached("TitleView", typeof(View), typeof(NavigationPage), null, propertyChanging: TitleViewPropertyChanging);
+		public static readonly BindableProperty TitleViewProperty = BindableProperty.CreateAttached("TitleView", typeof(View), typeof(NavigationPage), null,
+			propertyChanging: TitleViewPropertyChanging, propertyChanged: (bo, oldV, newV) => bo.AddRemoveLogicalChildren(oldV, newV));
 
-		static readonly BindablePropertyKey CurrentPagePropertyKey = BindableProperty.CreateReadOnly("CurrentPage", typeof(Page), typeof(NavigationPage), null, propertyChanged: OnCurrentPageChanged);
+		static readonly BindablePropertyKey CurrentPagePropertyKey = BindableProperty.CreateReadOnly(nameof(CurrentPage), typeof(Page), typeof(NavigationPage), null, propertyChanged: OnCurrentPageChanged);
 
 		/// <summary>Bindable property for <see cref="CurrentPage"/>.</summary>
 		public static readonly BindableProperty CurrentPageProperty = CurrentPagePropertyKey.BindableProperty;
@@ -158,11 +159,6 @@ namespace Microsoft.Maui.Controls
 			{
 				page.SetTitleView((View)oldValue, (View)newValue);
 			}
-			else if (oldValue != null)
-			{
-				var oldElem = (View)oldValue;
-				oldElem.Parent = null;
-			}
 		}
 
 		/// <include file="../../docs/Microsoft.Maui.Controls/NavigationPage.xml" path="//Member[@MemberName='GetBackButtonTitle']/Docs/*" />
@@ -175,7 +171,7 @@ namespace Microsoft.Maui.Controls
 		public static bool GetHasBackButton(Page page)
 		{
 			if (page == null)
-				throw new ArgumentNullException("page");
+				throw new ArgumentNullException(nameof(page));
 			return (bool)page.GetValue(HasBackButtonProperty);
 		}
 
@@ -336,7 +332,7 @@ namespace Microsoft.Maui.Controls
 		public static void SetHasBackButton(Page page, bool value)
 		{
 			if (page == null)
-				throw new ArgumentNullException("page");
+				throw new ArgumentNullException(nameof(page));
 			page.SetValue(HasBackButtonProperty, value);
 		}
 
@@ -378,9 +374,9 @@ namespace Microsoft.Maui.Controls
 			return base.OnBackButtonPressed();
 		}
 
-		void SendNavigated(Page previousPage)
+		void SendNavigated(Page previousPage, NavigationType navigationType)
 		{
-			previousPage?.SendNavigatedFrom(new NavigatedFromEventArgs(CurrentPage));
+			previousPage?.SendNavigatedFrom(new NavigatedFromEventArgs(CurrentPage, navigationType));
 			CurrentPage.SendNavigatedTo(new NavigatedToEventArgs(previousPage));
 		}
 
@@ -406,6 +402,8 @@ namespace Microsoft.Maui.Controls
 		void RemoveFromInnerChildren(Element page)
 		{
 			InternalChildren.Remove(page);
+
+			// TODO For NET9 we should remove this because the DisconnectHandlers will take care of it
 			page.Handler = null;
 		}
 
@@ -444,6 +442,7 @@ namespace Microsoft.Maui.Controls
 
 		Thickness IView.Margin => Thickness.Zero;
 
+		[Obsolete("Use ArrangeOverride instead")]
 		protected override void LayoutChildren(double x, double y, double width, double height)
 		{
 			// We don't want forcelayout to call the legacy
@@ -553,6 +552,12 @@ namespace Microsoft.Maui.Controls
 						w.Toolbar = null;
 					}
 
+					var flyoutPage = _toolbar.FindParentOfType<FlyoutPage>();
+					if (flyoutPage != null && flyoutPage.Parent is IWindow && flyoutPage.Toolbar == _toolbar)
+					{
+						flyoutPage.Toolbar = null;
+					}
+
 					_toolbar.Disconnect();
 					_toolbar = null;
 				}
@@ -575,14 +580,31 @@ namespace Microsoft.Maui.Controls
 				else
 				{
 					// Is the root the window or is this part of a modal stack
-					var rootPage = this.FindParentWith(x => (x is IWindow te || Window.Navigation.ModalStack.Contains(x)), true);
+					Element toolbarRoot;
 
-					if (rootPage is Window w)
+					var parentPages = this.GetParentPages();
+					parentPages.Insert(0, this);
+					var topLevelPage = parentPages[parentPages.Count - 1];
+
+					// Is my top parent page the root page on the window?
+					// If so then we set the toolbar on the window
+					if (Window.Page == topLevelPage)
+					{
+						toolbarRoot = Window;
+					}
+					else
+					{
+						// This means the page is a modal page so we set the toolbar on the top level page
+						// of the modal
+						toolbarRoot = topLevelPage;
+					}
+
+					if (toolbarRoot is Window w)
 					{
 						_toolbar = new NavigationPageToolbar(w, w.Page);
 						w.Toolbar = _toolbar;
 					}
-					else if (rootPage is Page p)
+					else if (toolbarRoot is Page p)
 					{
 						_toolbar = new NavigationPageToolbar(p, p);
 						p.Toolbar = _toolbar;
@@ -680,7 +702,8 @@ namespace Microsoft.Maui.Controls
 				},
 				() =>
 				{
-					SendNavigated(null);
+					// TODO this is the wrong navigation type
+					SendNavigated(null, NavigationType.Initialize);
 				})
 				.FireAndForget(Handler);
 			}
@@ -765,6 +788,10 @@ namespace Microsoft.Maui.Controls
 					{
 						Owner.RemoveFromInnerChildren(currentPage);
 						Owner.CurrentPage = newCurrentPage;
+						if (currentPage.TitleView != null)
+						{
+							currentPage.RemoveLogicalChild(currentPage.TitleView);
+						}
 					},
 					() =>
 					{
@@ -774,7 +801,7 @@ namespace Microsoft.Maui.Controls
 					},
 					() =>
 					{
-						Owner.SendNavigated(currentPage);
+						Owner.SendNavigated(currentPage, NavigationType.Pop);
 						Owner?.Popped?.Invoke(Owner, new NavigationEventArgs(currentPage));
 					});
 
@@ -811,7 +838,7 @@ namespace Microsoft.Maui.Controls
 					},
 					() =>
 					{
-						Owner.SendNavigated(previousPage);
+						Owner.SendNavigated(previousPage, NavigationType.PopToRoot);
 						Owner?.PoppedToRoot?.Invoke(Owner, new PoppedToRootEventArgs(newPage, pagesToRemove));
 					});
 			}
@@ -836,7 +863,7 @@ namespace Microsoft.Maui.Controls
 					},
 					() =>
 					{
-						Owner.SendNavigated(previousPage);
+						Owner.SendNavigated(previousPage, NavigationType.Push);
 						Owner?.Pushed?.Invoke(Owner, new NavigationEventArgs(root));
 					});
 			}

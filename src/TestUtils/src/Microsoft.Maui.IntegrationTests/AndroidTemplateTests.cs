@@ -4,6 +4,7 @@ using Microsoft.Maui.IntegrationTests.Android;
 
 namespace Microsoft.Maui.IntegrationTests
 {
+	[Category(Categories.RunOnAndroid)]
 	public class AndroidTemplateTests : BaseBuildTest
 	{
 		Emulator TestAvd = new Emulator();
@@ -47,21 +48,30 @@ namespace Microsoft.Maui.IntegrationTests
 
 
 		[Test]
-		[TestCase("maui", "net6.0", "Debug")]
-		[TestCase("maui", "net6.0", "Release")]
-		[TestCase("maui", "net7.0", "Debug")]
-		[TestCase("maui", "net7.0", "Release")]
-		[TestCase("maui-blazor", "net6.0", "Debug")]
-		[TestCase("maui-blazor", "net6.0", "Release")]
-		[TestCase("maui-blazor", "net7.0", "Debug")]
-		[TestCase("maui-blazor", "net7.0", "Release")]
-		public void RunOnAndroid(string id, string framework, string config)
+		[TestCase("maui", DotNetPrevious, "Debug", null)]
+		[TestCase("maui", DotNetPrevious, "Release", null)]
+		[TestCase("maui", DotNetCurrent, "Debug", null)]
+		[TestCase("maui", DotNetCurrent, "Release", null)]
+		[TestCase("maui", DotNetCurrent, "Release", "full")]
+		[TestCase("maui-blazor", DotNetPrevious, "Debug", null)]
+		[TestCase("maui-blazor", DotNetPrevious, "Release", null)]
+		[TestCase("maui-blazor", DotNetCurrent, "Debug", null)]
+		[TestCase("maui-blazor", DotNetCurrent, "Release", null)]
+		[TestCase("maui-blazor", DotNetCurrent, "Release", "full")]
+		public void RunOnAndroid(string id, string framework, string config, string trimMode)
 		{
 			var projectDir = TestDirectory;
 			var projectFile = Path.Combine(projectDir, $"{Path.GetFileName(projectDir)}.csproj");
 
 			Assert.IsTrue(DotnetInternal.New(id, projectDir, framework),
 				$"Unable to create template {id}. Check test output for errors.");
+
+			var buildProps = BuildProps;
+			if (!string.IsNullOrEmpty(trimMode))
+			{
+				buildProps.Add($"TrimMode={trimMode}");
+				buildProps.Add("TrimmerSingleWarn=false");
+			}
 
 			AddInstrumentation(projectDir);
 

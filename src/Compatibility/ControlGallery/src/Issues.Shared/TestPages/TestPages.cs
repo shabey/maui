@@ -96,8 +96,13 @@ namespace Microsoft.Maui.Controls.ControlGallery
 #if __ANDROID__
 		static IApp InitializeAndroidApp()
 		{
-			var fullApkPath = IOPath.Combine(TestContext.CurrentContext.TestDirectory, AppPaths.ApkPath);
+			var envApkPath = Environment.GetEnvironmentVariable("ANDROID_APP");
 
+
+			var fullApkPath = string.IsNullOrEmpty(envApkPath) ? IOPath.Combine(TestContext.CurrentContext.TestDirectory, AppPaths.ApkPath)
+																: envApkPath;
+
+			System.Diagnostics.Debug.WriteLine($"FullAppPath: {fullApkPath}");
 			var appConfiguration = ConfigureApp.Android.ApkFile(fullApkPath).Debug();
 
 			if (TestContext.Parameters.Exists("IncludeScreenShots") &&
@@ -146,12 +151,25 @@ namespace Microsoft.Maui.Controls.ControlGallery
 				iOSVersion = _iosVersion;
 			}*/
 
+
+			var enviOSPath = Environment.GetEnvironmentVariable("iOS_APP");
+			var UDID = Environment.GetEnvironmentVariable("DEVICE_UDID");
+
+			var fullApkPath = string.IsNullOrEmpty(enviOSPath) ? IOPath.Combine(TestContext.CurrentContext.TestDirectory, AppPaths.iOSPath)
+																: enviOSPath;
+
 			// Running on the simulator
-			var app = ConfigureApp.iOS
+			var appConfiguration = ConfigureApp.iOS
 							.PreferIdeSettings()
-							.AppBundle(AppPaths.iOSPath)
-							.Debug()
-							.StartApp();
+							.AppBundle(fullApkPath)
+							.Debug();
+
+			if (!string.IsNullOrWhiteSpace(UDID))
+			{
+				appConfiguration = appConfiguration.DeviceIdentifier(UDID);
+			}
+							
+			var app = appConfiguration.StartApp();
 
 			return app;
 		}
@@ -186,8 +204,8 @@ namespace Microsoft.Maui.Controls.ControlGallery
 
 			string cellName = "";
 			if (typeIssueAttribute.IssueTracker.ToString() != "None" &&
-				typeIssueAttribute.IssueNumber != 1461 &&
-				typeIssueAttribute.IssueNumber != 342)
+				typeIssueAttribute.IssueNumber != "1461" &&
+				typeIssueAttribute.IssueNumber != "342")
 			{
 				cellName = typeIssueAttribute.DisplayName;
 			}
@@ -939,6 +957,9 @@ namespace Microsoft.Maui.Controls.ControlGallery
 			{
 				if (serviceType == typeof(IDispatcher))
 					return _dispatcher;
+
+				if (serviceType == typeof(ApplicationDispatcher))
+					return new ApplicationDispatcher(_dispatcher);
 
 				throw new NotImplementedException();
 			}

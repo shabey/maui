@@ -8,18 +8,40 @@ parameters:
   provisionatorChannel: 'latest'
   agentPoolAccessToken: ''
   configuration : "Release"
+  runtimeVariant : "Mono"
+  testFilter: ''
 
 steps:
+  - task: DownloadPipelineArtifact@2
+    condition: and(ne('${{ parameters.platform }}' , 'windows'), eq('${{ parameters.runtimeVariant }}' , 'Mono'))
+    inputs:
+      artifact: ui-tests-samples
+  
+  - task: DownloadPipelineArtifact@2
+    condition: and(ne('${{ parameters.platform }}' , 'windows'), eq('${{ parameters.runtimeVariant }}' , 'NativeAOT'))
+    inputs:
+      artifact: ui-tests-samples-nativeaot
+
+  - task: DownloadPipelineArtifact@2
+    condition: eq('${{ parameters.platform }}' , 'windows')
+    inputs:
+      artifact: ui-tests-samples-windows
+  
+  - ${{ if eq(parameters.platform, 'ios')}}:
+    - bash: |
+        chmod +x $(System.DefaultWorkingDirectory)/eng/scripts/clean-bot.sh
+        $(System.DefaultWorkingDirectory)/eng/scripts/clean-bot.sh
+      displayName: 'Clean bot'
+      continueOnError: true
+      timeoutInMinutes: 60
 
   - template: provision.yml
     parameters:
-      ${{ if eq(parameters.platform, 'windows') }}:
-        skipProvisioning: true
-      ${{ if ne(parameters.platform, 'windows') }}:
-        skipProvisioning: false
-      skipXcode: false
+      skipProvisioning:  true
+      skipAndroidSdks: ${{ ne(parameters.platform, 'android') }}
+      skipXcode: ${{ or(eq(parameters.platform, 'android'), eq(parameters.platform, 'windows')) }}
       provisionatorChannel: ${{ parameters.provisionatorChannel }}
-
+      
   - task: PowerShell@2
     condition: ne('${{ parameters.platform }}' , 'windows')
     inputs:
@@ -30,19 +52,10 @@ steps:
         defaults write -g NSAutomaticSpellingCorrectionEnabled -bool false
     displayName: "Modify defaults"
     continueOnError: true
-
-  - task: NodeTool@0
-    inputs:
-      versionSpec: "18.13.0"
-    displayName: "Install node"
-
-  - pwsh: ./eng/scripts/appium-install.ps1
-    displayName: "Install Appium"
-    continueOnError: true
-
+  
   - pwsh: ./build.ps1 --target=dotnet --configuration="${{ parameters.configuration }}" --verbosity=diagnostic
     displayName: 'Install .NET'
-    retryCountOnTaskFailure: 3
+    retryCountOnTaskFailure: 2
     env:
       DOTNET_TOKEN: $(dotnetbuilds-internal-container-read-token)
       PRIVATE_BUILD: $(PrivateBuild)
@@ -50,21 +63,63 @@ steps:
   - pwsh: echo "##vso[task.prependpath]$(DotNet.Dir)"
     displayName: 'Add .NET to PATH'
 
-  - pwsh: ./build.ps1 --target=dotnet-buildtasks --configuration="${{ parameters.configuration }}"
-    displayName: 'Build the MSBuild Tasks'
+  # AzDO hosted agents default to 1024x768; set something bigger for Windows UI tests
+  - task: ScreenResolutionUtility@1
+    condition: eq('${{ parameters.platform }}' , 'windows')
+    inputs:
+      displaySettings: 'specific'
+      width: '1920'
+      height: '1080'
+    displayName: "Set screen resolution"
 
-  - pwsh: ./build.ps1 --target=dotnet-samples --configuration="${{ parameters.configuration }}" --${{ parameters.platform }} --verbosity=diagnostic --usenuget=false
-    displayName: 'Build the samples'
+  - task: UseNode@1
+    inputs:
+      version: "20.3.1"
+    displayName: "Install node"
 
-  # - bash: |
-  #     sudo xcode-select --reset
-  #   displayName: 'XCode reset'
-  #   condition: ne('${{ parameters.platform }}' , 'windows')
+  - pwsh: |
+      $fullLogsDir = Join-Path "$(LogDirectory)" "npm"
+      ./eng/scripts/appium-install.ps1 -logsDir "$fullLogsDir"
+      Dir -Recurse $(APPIUM_HOME) | Get-Childitem | Select Fullname
+    displayName: "Install Appium (Drivers)"
+    continueOnError: false
+    retryCountOnTaskFailure: 1
+    timeoutInMinutes: 10
+    env:
+      APPIUM_HOME: $(APPIUM_HOME)
 
-  - pwsh: ./build.ps1 -Script eng/devices/${{ parameters.platform }}.cake --target=uitest --project="${{ parameters.path }}" --appproject="${{ parameters.app }}" --device="${{ parameters.device }}" --apiversion="${{ parameters.version }}" --configuration="${{ parameters.configuration }}" --results="$(TestResultsDirectory)" --binlog="$(LogDirectory)" ${{ parameters.cakeArgs }} --verbosity=diagnostic
+  - pwsh: |
+      $command = "./build.ps1 -Script eng/devices/${{ parameters.platform }}.cake --target=uitest --project=""${{ parameters.path }}"""
+      $command += " --appproject=""${{ parameters.app }}"" --device=""${{ parameters.device }}"" --apiversion=""${{ parameters.version }}"" --configuration=""${{ parameters.configuration }}"""
+      $command += " --runtimevariant=""${{ parameters.runtimeVariant }}"""
+      $command += " --results=""$(TestResultsDirectory)"" --binlog=""$(LogDirectory)"" ${{ parameters.cakeArgs }} --verbosity=diagnostic"
+      
+      $testFilter = ""
+
+      "${{ parameters.testFilter }}".Split(",") | ForEach {
+        $testFilter += "TestCategory=" + $_ + "|"
+      }
+
+      $testFilter = $testFilter.TrimEnd("|")
+
+      # Cake does not allow empty parameters, so check if our filter is empty before adding it
+      if ($testFilter) {
+        $command += " --test-filter ""$testFilter"""
+      }
+
+      Invoke-Expression $command  
     displayName: $(Agent.JobName)
-    retryCountOnTaskFailure: 2
-  
+    ${{ if ne(parameters.platform, 'android')}}:
+      retryCountOnTaskFailure: 1
+    env:
+      APPIUM_HOME: $(APPIUM_HOME)
+
+  - bash: |
+      pwsh ./build.ps1 --target=Cleanup -Script eng/devices/${{ parameters.platform }}.cake ---results="$(TestResultsDirectory)" ${{ parameters.cakeArgs }}
+    displayName: Cleanup and Create Simulator Logs if Test Run Failed To
+    condition: ${{ eq(parameters.platform, 'ios') }}
+    continueOnError: true
+
   - task: PublishTestResults@2
     displayName: Publish the $(System.PhaseName) test results
     condition: always()
@@ -72,6 +127,7 @@ steps:
       testResultsFormat: VSTest
       testResultsFiles: '$(TestResultsDirectory)/*.trx'
       testRunTitle: '$(System.PhaseName)'
+      failTaskOnFailedTests: true
 
   - task: PublishBuildArtifacts@1
     condition: always()

@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 
 namespace Microsoft.Maui.IntegrationTests
 {
+	[Category(Categories.Samples)]
 	public class SampleTests : BaseBuildTest
 	{
 		public static IEnumerable SampleTestMatrix
@@ -33,6 +34,8 @@ namespace Microsoft.Maui.IntegrationTests
 			{
 				"UseWorkload=true",
 				$"RestoreConfigFile={TestNuGetConfig}",
+				// Surface warnings as build errors
+				"TreatWarningsAsErrors=true",
 			};
 
 			Assert.IsTrue(DotnetInternal.Build(projectFile, config, properties: sampleProps, binlogPath: binlog),

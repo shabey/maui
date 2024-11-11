@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Maui.Controls.Compatibility;
 using Microsoft.Maui.Controls.Platform;
 using Microsoft.Maui.Handlers;
 
@@ -11,27 +12,20 @@ namespace Microsoft.Maui.Controls
 	{
 		// IButton does not include the ContentType property, so we map it here to handle Image Positioning
 
-		/// <summary>
-		/// The property mapper that maps the abstract properties to the platform-specific methods for further processing.
-		/// </summary>
-		public static IPropertyMapper<IButton, ButtonHandler> ControlsButtonMapper = new PropertyMapper<Button, ButtonHandler>(ButtonHandler.Mapper)
-		{
-			[nameof(ContentLayout)] = MapContentLayout,
-#if IOS
-			[nameof(Padding)] = MapPadding,
-#endif
-#if WINDOWS
-			[nameof(IText.Text)] = MapText,
-			[nameof(ImageSource)] = MapImageSource,
-#endif
-			[nameof(TextTransform)] = MapText,
-			[nameof(Text)] = MapText,
-			[nameof(Button.LineBreakMode)] = MapLineBreakMode,
-		};
-
 		internal new static void RemapForControls()
 		{
-			ButtonHandler.Mapper = ControlsButtonMapper;
+			ButtonHandler.Mapper.ReplaceMapping<Button, IButtonHandler>(nameof(ContentLayout), MapContentLayout);
+#if IOS
+			ButtonHandler.Mapper.ReplaceMapping<Button, IButtonHandler>(nameof(Padding), MapPadding);
+			ButtonHandler.Mapper.ReplaceMapping<Button, IButtonHandler>(nameof(BorderWidth), MapBorderWidth);
+#endif
+#if WINDOWS
+			ButtonHandler.Mapper.ReplaceMapping<Button, IButtonHandler>(nameof(ImageSource), MapImageSource);
+#endif
+			ButtonHandler.Mapper.ReplaceMapping<Button, IButtonHandler>(nameof(Text), MapText);
+
+			ButtonHandler.Mapper.ReplaceMapping<Button, IButtonHandler>(nameof(TextTransform), MapText);
+			ButtonHandler.Mapper.ReplaceMapping<Button, IButtonHandler>(nameof(Button.LineBreakMode), MapLineBreakMode);
 		}
 
 		/// <summary>

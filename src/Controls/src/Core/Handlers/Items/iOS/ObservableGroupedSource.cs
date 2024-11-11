@@ -204,7 +204,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 		void Add(NotifyCollectionChangedEventArgs args)
 		{
-			if (ReloadRequired())
+			if (NotLoadedYet())
 			{
 				Reload();
 				return;
@@ -342,7 +342,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 					var index = 0;
 					while (enumerator.MoveNext())
 					{
-						if (enumerator.Current == item)
+						if (Equals(enumerator.Current, item))
 						{
 							return index;
 						}

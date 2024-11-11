@@ -28,7 +28,7 @@ namespace Microsoft.Maui.Controls
 
 		static AView? CreatePlatformView(ViewHandler<IRadioButton, AView> radioButton)
 		{
-			// If someone is using a completely different type for IRadioButton			
+			// If someone is using a completely different type for IRadioButton
 			if (radioButton.VirtualView is not RadioButton rb)
 				return null;
 
@@ -39,8 +39,7 @@ namespace Microsoft.Maui.Controls
 
 			var viewGroup = new ContentViewGroup(radioButton.Context)
 			{
-				CrossPlatformMeasure = radioButton.VirtualView.CrossPlatformMeasure,
-				CrossPlatformArrange = radioButton.VirtualView.CrossPlatformArrange
+				CrossPlatformLayout = radioButton.VirtualView
 			};
 
 			return viewGroup;

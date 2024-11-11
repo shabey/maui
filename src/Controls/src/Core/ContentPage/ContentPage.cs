@@ -1,5 +1,6 @@
 #nullable disable
 
+using System;
 using Microsoft.Maui.Graphics;
 using Microsoft.Maui.HotReload;
 using Microsoft.Maui.Layouts;
@@ -18,6 +19,24 @@ namespace Microsoft.Maui.Controls
 		{
 			get { return (View)GetValue(ContentProperty); }
 			set { SetValue(ContentProperty, value); }
+		}
+
+		/// <summary>Bindable property for <see cref="HideSoftInputOnTapped"/>.</summary>
+		public static readonly BindableProperty HideSoftInputOnTappedProperty
+			= BindableProperty.Create(nameof(HideSoftInputOnTapped), typeof(bool), typeof(ContentPage), false);
+
+		/// <summary>
+		/// Gets or sets a value that indicates whether tapping anywhere on the page will cause the soft input to hide.
+		/// </summary>
+		public bool HideSoftInputOnTapped
+		{
+			get { return (bool)GetValue(HideSoftInputOnTappedProperty); }
+			set { SetValue(HideSoftInputOnTappedProperty, value); }
+		}
+
+		public ContentPage()
+		{
+			this.NavigatedTo += (_, _) => UpdateHideSoftInputOnTapped();
 		}
 
 		protected override void OnBindingContextChanged()
@@ -51,8 +70,16 @@ namespace Microsoft.Maui.Controls
 
 		protected override Size MeasureOverride(double widthConstraint, double heightConstraint)
 		{
-			DesiredSize = this.ComputeDesiredSize(widthConstraint, heightConstraint);
-			return DesiredSize;
+			return this.ComputeDesiredSize(widthConstraint, heightConstraint);
+		}
+
+		[Obsolete("Use ArrangeOverride instead")]
+		protected override void LayoutChildren(double x, double y, double width, double height)
+		{
+			// This call is redundant when a handler is attached because the handler just calls
+			// CrossPlatformArrange
+			if (Handler is null)
+				base.LayoutChildren(x, y, width, height);
 		}
 
 		protected override Size ArrangeOverride(Rect bounds)
@@ -62,13 +89,13 @@ namespace Microsoft.Maui.Controls
 			return Frame.Size;
 		}
 
-		Size IContentView.CrossPlatformMeasure(double widthConstraint, double heightConstraint)
+		Size ICrossPlatformLayout.CrossPlatformMeasure(double widthConstraint, double heightConstraint)
 		{
 			_ = this.MeasureContent(widthConstraint, heightConstraint);
 			return new Size(widthConstraint, heightConstraint);
 		}
 
-		Size IContentView.CrossPlatformArrange(Rect bounds)
+		Size ICrossPlatformLayout.CrossPlatformArrange(Rect bounds)
 		{
 			Frame = bounds;
 			this.ArrangeContent(bounds);
@@ -108,6 +135,17 @@ namespace Microsoft.Maui.Controls
 				//TODO: if reload handler is null, Do a manual reload?
 			});
 		}
+
 		#endregion
+
+		Size IContentView.CrossPlatformArrange(Rect bounds)
+		{
+			return (this as ICrossPlatformLayout).CrossPlatformArrange(bounds);
+		}
+
+		Size IContentView.CrossPlatformMeasure(double widthConstraint, double heightConstraint)
+		{
+			return (this as ICrossPlatformLayout).CrossPlatformMeasure(widthConstraint, heightConstraint);
+		}
 	}
 }

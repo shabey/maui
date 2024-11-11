@@ -112,6 +112,19 @@ namespace Microsoft.Maui.Platform
 			if (maxLength == -1)
 				maxLength = int.MaxValue;
 
+			var children = platformControl.GetChildren<TextBox>();
+			if (children is not null)
+			{
+				foreach (var textBox in children)
+				{
+					if (textBox is not null)
+					{
+						textBox.MaxLength = searchBar.MaxLength;
+						break;
+					}
+				}
+			}
+
 			if (maxLength == 0)
 				MauiAutoSuggestBox.SetIsReadOnly(platformControl, true);
 			else
@@ -136,6 +149,16 @@ namespace Microsoft.Maui.Platform
 				return;
 
 			textBox.UpdateIsTextPredictionEnabled(searchBar);
+		}
+
+		public static void UpdateIsSpellCheckEnabled(this AutoSuggestBox platformControl, ISearchBar searchBar)
+		{
+			var textBox = platformControl.GetFirstDescendant<TextBox>();
+
+			if (textBox is null)
+				return;
+
+			textBox.UpdateIsSpellCheckEnabled(searchBar);
 		}
 
 		public static void UpdateKeyboard(this AutoSuggestBox platformControl, ISearchBar searchBar)

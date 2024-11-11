@@ -16,8 +16,11 @@ namespace Microsoft.Maui.Controls
 		public static readonly BindableProperty IsEnabledProperty = BindableProperty.Create(nameof(IsEnabled), typeof(bool),
 			typeof(MenuBarItem), true);
 
-
 		static readonly BindableProperty PriorityProperty = BindableProperty.Create(nameof(Priority), typeof(int), typeof(ToolbarItem), 0);
+		public MenuBarItem()
+		{
+			LogicalChildrenInternalBackingStore = new CastingList<Element, IMenuElement>(_menus);
+		}
 
 		public int Priority
 		{
@@ -39,8 +42,7 @@ namespace Microsoft.Maui.Controls
 
 		readonly List<IMenuElement> _menus = new List<IMenuElement>();
 
-		private protected override IList<Element> LogicalChildrenInternalBackingStore
-			=> new CastingList<Element, IMenuElement>(_menus);
+		private protected override IList<Element> LogicalChildrenInternalBackingStore {get; }
 
 		public IMenuElement this[int index]
 		{
@@ -59,7 +61,7 @@ namespace Microsoft.Maui.Controls
 		public void Add(IMenuElement item)
 		{
 			var index = _menus.Count;
-			AddLogicalChildInternal((Element)item);
+			AddLogicalChild((Element)item);
 			NotifyHandler(nameof(IMenuBarItemHandler.Add), index, item);
 		}
 
@@ -91,14 +93,14 @@ namespace Microsoft.Maui.Controls
 
 		public void Insert(int index, IMenuElement item)
 		{
-			InsertLogicalChildInternal(index, (Element)item);
+			InsertLogicalChild(index, (Element)item);
 			NotifyHandler(nameof(IMenuBarItemHandler.Insert), index, item);
 		}
 
 		public bool Remove(IMenuElement item)
 		{
 			var index = _menus.IndexOf(item);
-			var result = RemoveLogicalChildInternal((Element)item, index);
+			var result = RemoveLogicalChild((Element)item, index);
 			NotifyHandler(nameof(IMenuFlyoutHandler.Remove), index, item);
 
 			return result;
@@ -107,7 +109,7 @@ namespace Microsoft.Maui.Controls
 		public void RemoveAt(int index)
 		{
 			var item = _menus[index];
-			RemoveLogicalChildInternal((Element)item, index);
+			RemoveLogicalChild((Element)item, index);
 			NotifyHandler(nameof(IMenuFlyoutHandler.Remove), index, item);
 		}
 

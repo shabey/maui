@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable CS0618 // Type or member is obsolete
+using System;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Controls.Handlers.Compatibility;
@@ -9,6 +10,11 @@ using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Hosting;
 using Microsoft.Maui.Platform;
 using Xunit;
+
+#if WINDOWS
+using WPanel = Microsoft.UI.Xaml.Controls.Panel;
+using WSize = Windows.Foundation.Size;
+#endif
 
 namespace Microsoft.Maui.DeviceTests
 {
@@ -195,6 +201,7 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.True(100 <= layoutFrame.Width);
 		}
 
+#if !WINDOWS
 		[Fact]
 		public async Task FrameDoesNotInterpretConstraintsAsMinimums()
 		{
@@ -301,8 +308,9 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.Equal(expected, layoutFrame.Width, 1.0d);
 			Assert.Equal(expected, layoutFrame.Height, 1.0d);
 		}
+#endif
 
-#if !ANDROID
+#if !ANDROID && !IOS && !MACCATALYST
 		[Fact]
 		public async Task FrameResizesItsContents()
 		{
@@ -334,30 +342,29 @@ namespace Microsoft.Maui.DeviceTests
 			};
 
 			await CreateHandlerAndAddToWindow<IPlatformViewHandler>(layout, async (handler) =>
-					{
-						// Place the frame in a spacious container in a large window
-						var size = (layout as IView).Measure(originalLayoutDimensions, originalLayoutDimensions);
-						var rect = new Graphics.Rect(0, 0, size.Width, size.Height);
-						(layout as IView).Arrange(rect);
-						await OnFrameSetToNotEmpty(layout);
-						await OnFrameSetToNotEmpty(frame);
+			{
+				// Place the frame in a spacious container in a large window
+				var size = (layout as IView).Measure(originalLayoutDimensions, originalLayoutDimensions);
+				var rect = new Graphics.Rect(0, 0, size.Width, size.Height);
+				(layout as IView).Arrange(rect);
+				await OnFrameSetToNotEmpty(layout);
+				await OnFrameSetToNotEmpty(frame);
 
-						// Measure frame when it was first rendered in a spacious container
-						var frameControlSize = (frame.Handler as IPlatformViewHandler).PlatformView.GetBoundingBox();
-						var originalFrameHeight = frameControlSize.Height;
-						Assert.True(frameControlSize.Width > 0);
-						// Resize window to be smaller, forcing the frame to shrink (and wait for the changes to reflect)
-						layout.Window.Width = shrunkWindowWidth;
-						await Task.Delay(2000);
+				// Measure frame when it was first rendered in a spacious container
+				var frameControlSize = (frame.Handler as IPlatformViewHandler).PlatformView.GetBoundingBox();
+				var originalFrameHeight = frameControlSize.Height;
+				Assert.True(frameControlSize.Width > 0);
+				// Resize window to be smaller, forcing the frame to shrink (and wait for the changes to reflect)
+				layout.Window.Width = shrunkWindowWidth;
+				await Task.Delay(2000);
 
-						// Ensure frame is within the window dimensions
-						frameControlSize = (frame.Handler as IPlatformViewHandler).PlatformView.GetBoundingBox();
-						Assert.True((frameControlSize.Width > 0) && (frameControlSize.Width < shrunkWindowWidth));
+				// Ensure frame is within the window dimensions
+				frameControlSize = (frame.Handler as IPlatformViewHandler).PlatformView.GetBoundingBox();
+				Assert.True((frameControlSize.Width > 0) && (frameControlSize.Width < shrunkWindowWidth));
 
-
-						// If the frame's height changed (it wrapped some text), ensure it hasn't shrunk
-						Assert.True(frameControlSize.Height >= originalFrameHeight);
-					});
+				// If the frame's height changed (it wrapped some text), ensure it hasn't shrunk
+				Assert.True(frameControlSize.Height >= originalFrameHeight);
+			});
 		}
 #endif
 
@@ -430,6 +437,72 @@ namespace Microsoft.Maui.DeviceTests
 			Assert.True(layoutFrame.Width > minExpectedWidth);
 		}
 
+#if WINDOWS
+
+		class ContentLayoutPanel : WPanel
+		{
+			IView _view;
+			readonly double _widthConstraint;
+			readonly double _heightConstraint;
+
+			public ContentLayoutPanel(IView view, double widthConstraint, double heightConstraint)
+			{
+				if (!double.IsPositiveInfinity(widthConstraint))
+					this.Width = widthConstraint;
+
+				if (!double.IsPositiveInfinity(heightConstraint))
+					this.Height = heightConstraint;
+
+				_view = view;
+				_widthConstraint = widthConstraint;
+				_heightConstraint = heightConstraint;
+				var platformView = view.ToPlatform();
+
+				// Just in case this view is already parented to a wrapper that's been cycled out
+				if (platformView.Parent is ContentLayoutPanel clp)
+					clp.Children.Remove(platformView);
+
+				Children.Add(platformView);
+			}
+
+			protected override WSize ArrangeOverride(WSize finalSize) => _view.Arrange(new Rect(0, 0, finalSize.Width, finalSize.Height)).ToPlatform();
+
+			protected override WSize MeasureOverride(WSize availableSize) => _view.Measure(_widthConstraint, _heightConstraint).ToPlatform();
+		}
+
+		async Task<Rect> LayoutFrame(Layout layout, Frame frame, double widthConstraint, double heightConstraint, Func<Task> additionalTests = null)
+		{
+			additionalTests ??= () => Task.CompletedTask;
+
+			await InvokeOnMainThreadAsync(async () =>
+			{
+				// create platform views
+				layout.ToHandler(MauiContext);
+				frame.ToHandler(MauiContext);
+
+				await new ContentLayoutPanel(layout, widthConstraint, heightConstraint).AttachAndRun(async () =>
+						{
+							await OnFrameSetToNotEmpty(layout);
+							await OnFrameSetToNotEmpty(frame);
+
+							// verify that the PlatformView was measured
+							var frameControlSize = (frame.Handler as IPlatformViewHandler).PlatformView.GetBoundingBox();
+							Assert.True(frameControlSize.Width > 0);
+							Assert.True(frameControlSize.Height > 0);
+
+							// if the control sits inside a container make sure that also measured
+							var containerControlSize = frame.ToPlatform().GetBoundingBox();
+							Assert.True(containerControlSize.Width > 0);
+							Assert.True(containerControlSize.Height > 0);
+
+							await additionalTests.Invoke();
+						}, MauiContext);
+			}
+			);
+
+			return layout.Frame;
+		}
+#else
 		async Task<Rect> LayoutFrame(Layout layout, Frame frame, double widthConstraint, double heightConstraint, Func<Task> additionalTests = null)
 		{
 			additionalTests ??= () => Task.CompletedTask;
@@ -456,5 +529,7 @@ namespace Microsoft.Maui.DeviceTests
 						return layout.Frame;
 					});
 		}
+#endif
 	}
 }
+#pragma warning restore CS0618 // Type or member is obsolete

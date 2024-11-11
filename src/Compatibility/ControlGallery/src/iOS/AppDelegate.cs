@@ -96,7 +96,6 @@ namespace Microsoft.Maui.Controls.ControlGallery.iOS
 
 			//Forms.ViewInitialized += (object sender, ViewInitializedEventArgs e) =>
 			//{
-			//	// http://developer.xamarin.com/recipes/testcloud/set-accessibilityidentifier-ios/
 			//	if (null != e.View.AutomationId && null != e.NativeView)
 			//	{
 			//		//	e.NativeView.AccessibilityIdentifier = e.View.StyleId;
@@ -163,7 +162,7 @@ namespace Microsoft.Maui.Controls.ControlGallery.iOS
 
 			button.TouchUpInside += (sender, e) =>
 			{
-				Maui.Controls.Application.Current.MainPage = new ContentPage { Content = new Label { Text = "40911 Success" } };
+				Maui.Controls.Application.Current.Windows[0].Page = new ContentPage { Content = new Label { Text = "40911 Success" } };
 				loginViewController.DismissViewController(true, null);
 			};
 
@@ -186,8 +185,6 @@ namespace Microsoft.Maui.Controls.ControlGallery.iOS
 		[Export("navigateToTest:")]
 		public string NavigateToTest(string test)
 		{
-			// According to https://developer.xamarin.com/guides/testcloud/uitest/working-with/backdoors/
-			// this method has to return a string
 			return (Microsoft.Maui.Controls.Application.Current as App).NavigateToTestPage(test).ToString();
 		}
 

@@ -12,66 +12,75 @@ using Rect = Microsoft.Maui.Graphics.Rect;
 
 namespace Microsoft.Maui.Controls
 {
-	/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="Type[@FullName='Microsoft.Maui.Controls.VisualElement']/Docs/*" />
+	/// <summary>
+	/// An <see cref="Element" /> that occupies an area on the screen, has a visual appearance, and can obtain touch input.
+	/// </summary>
+	/// <remarks>
+	/// The base class for most .NET MAUI on-screen elements. Provides most properties, events, and methods for presenting an item on screen.
+	/// </remarks>
 	public partial class VisualElement : NavigableElement, IAnimatable, IVisualElementController, IResourcesProvider, IStyleElement, IFlowDirectionController, IPropertyPropagationController, IVisualController, IWindowController, IView, IControlsVisualElement
 	{
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='NavigationProperty']/Docs/*" />
+		/// <summary>Bindable property for <see cref="NavigableElement.Navigation"/>.</summary>
 		public new static readonly BindableProperty NavigationProperty = NavigableElement.NavigationProperty;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='StyleProperty']/Docs/*" />
+		/// <inheritdoc cref="StyleableElement.StyleProperty" />
 		public new static readonly BindableProperty StyleProperty = NavigableElement.StyleProperty;
 
+		bool _inputTransparentExplicit = (bool)InputTransparentProperty.DefaultValue;
+
 		/// <summary>Bindable property for <see cref="InputTransparent"/>.</summary>
-		public static readonly BindableProperty InputTransparentProperty = BindableProperty.Create("InputTransparent", typeof(bool), typeof(VisualElement), default(bool));
+		public static readonly BindableProperty InputTransparentProperty = BindableProperty.Create(
+			nameof(InputTransparent), typeof(bool), typeof(VisualElement), default(bool),
+			propertyChanged: OnInputTransparentPropertyChanged, coerceValue: CoerceInputTransparentProperty);
 
 		bool _isEnabledExplicit = (bool)IsEnabledProperty.DefaultValue;
 
 		/// <summary>Bindable property for <see cref="IsEnabled"/>.</summary>
-		public static readonly BindableProperty IsEnabledProperty = BindableProperty.Create("IsEnabled", typeof(bool),
+		public static readonly BindableProperty IsEnabledProperty = BindableProperty.Create(nameof(IsEnabled), typeof(bool),
 			typeof(VisualElement), true, propertyChanged: OnIsEnabledPropertyChanged, coerceValue: CoerceIsEnabledProperty);
 
-		static readonly BindablePropertyKey XPropertyKey = BindableProperty.CreateReadOnly("X", typeof(double), typeof(VisualElement), default(double));
+		static readonly BindablePropertyKey XPropertyKey = BindableProperty.CreateReadOnly(nameof(X), typeof(double), typeof(VisualElement), default(double));
 
 		/// <summary>Bindable property for <see cref="X"/>.</summary>
 		public static readonly BindableProperty XProperty = XPropertyKey.BindableProperty;
 
-		static readonly BindablePropertyKey YPropertyKey = BindableProperty.CreateReadOnly("Y", typeof(double), typeof(VisualElement), default(double));
+		static readonly BindablePropertyKey YPropertyKey = BindableProperty.CreateReadOnly(nameof(Y), typeof(double), typeof(VisualElement), default(double));
 
 		/// <summary>Bindable property for <see cref="Y"/>.</summary>
 		public static readonly BindableProperty YProperty = YPropertyKey.BindableProperty;
 
 		/// <summary>Bindable property for <see cref="AnchorX"/>.</summary>
-		public static readonly BindableProperty AnchorXProperty = BindableProperty.Create("AnchorX", typeof(double), typeof(VisualElement), .5d);
+		public static readonly BindableProperty AnchorXProperty = BindableProperty.Create(nameof(AnchorX), typeof(double), typeof(VisualElement), .5d);
 
 		/// <summary>Bindable property for <see cref="AnchorY"/>.</summary>
-		public static readonly BindableProperty AnchorYProperty = BindableProperty.Create("AnchorY", typeof(double), typeof(VisualElement), .5d);
+		public static readonly BindableProperty AnchorYProperty = BindableProperty.Create(nameof(AnchorY), typeof(double), typeof(VisualElement), .5d);
 
 		/// <summary>Bindable property for <see cref="TranslationX"/>.</summary>
-		public static readonly BindableProperty TranslationXProperty = BindableProperty.Create("TranslationX", typeof(double), typeof(VisualElement), 0d);
+		public static readonly BindableProperty TranslationXProperty = BindableProperty.Create(nameof(TranslationX), typeof(double), typeof(VisualElement), 0d);
 
 		/// <summary>Bindable property for <see cref="TranslationY"/>.</summary>
-		public static readonly BindableProperty TranslationYProperty = BindableProperty.Create("TranslationY", typeof(double), typeof(VisualElement), 0d);
+		public static readonly BindableProperty TranslationYProperty = BindableProperty.Create(nameof(TranslationY), typeof(double), typeof(VisualElement), 0d);
 
-		static readonly BindablePropertyKey WidthPropertyKey = BindableProperty.CreateReadOnly("Width", typeof(double), typeof(VisualElement), -1d,
+		static readonly BindablePropertyKey WidthPropertyKey = BindableProperty.CreateReadOnly(nameof(Width), typeof(double), typeof(VisualElement), -1d,
 			coerceValue: (bindable, value) => double.IsNaN((double)value) ? 0d : value);
 
 		/// <summary>Bindable property for <see cref="Width"/>.</summary>
 		public static readonly BindableProperty WidthProperty = WidthPropertyKey.BindableProperty;
 
-		static readonly BindablePropertyKey HeightPropertyKey = BindableProperty.CreateReadOnly("Height", typeof(double), typeof(VisualElement), -1d,
+		static readonly BindablePropertyKey HeightPropertyKey = BindableProperty.CreateReadOnly(nameof(Height), typeof(double), typeof(VisualElement), -1d,
 			coerceValue: (bindable, value) => double.IsNaN((double)value) ? 0d : value);
 
 		/// <summary>Bindable property for <see cref="Height"/>.</summary>
 		public static readonly BindableProperty HeightProperty = HeightPropertyKey.BindableProperty;
 
 		/// <summary>Bindable property for <see cref="Rotation"/>.</summary>
-		public static readonly BindableProperty RotationProperty = BindableProperty.Create("Rotation", typeof(double), typeof(VisualElement), default(double));
+		public static readonly BindableProperty RotationProperty = BindableProperty.Create(nameof(Rotation), typeof(double), typeof(VisualElement), default(double));
 
 		/// <summary>Bindable property for <see cref="RotationX"/>.</summary>
-		public static readonly BindableProperty RotationXProperty = BindableProperty.Create("RotationX", typeof(double), typeof(VisualElement), default(double));
+		public static readonly BindableProperty RotationXProperty = BindableProperty.Create(nameof(RotationX), typeof(double), typeof(VisualElement), default(double));
 
 		/// <summary>Bindable property for <see cref="RotationY"/>.</summary>
-		public static readonly BindableProperty RotationYProperty = BindableProperty.Create("RotationY", typeof(double), typeof(VisualElement), default(double));
+		public static readonly BindableProperty RotationYProperty = BindableProperty.Create(nameof(RotationY), typeof(double), typeof(VisualElement), default(double));
 
 		/// <summary>Bindable property for <see cref="Scale"/>.</summary>
 		public static readonly BindableProperty ScaleProperty = BindableProperty.Create(nameof(Scale), typeof(double), typeof(VisualElement), 1d);
@@ -159,14 +168,16 @@ namespace Microsoft.Maui.Controls
 
 		/// <summary>Bindable property for <see cref="Visual"/>.</summary>
 		public static readonly BindableProperty VisualProperty =
-			BindableProperty.Create(nameof(Visual), typeof(IVisual), typeof(VisualElement), Maui.Controls.VisualMarker.MatchParent,
+			BindableProperty.Create(nameof(Visual), typeof(IVisual), typeof(VisualElement), VisualMarker.MatchParent,
 									validateValue: (b, v) => v != null, propertyChanged: OnVisualChanged);
 
-		static IVisual _defaultVisual = Microsoft.Maui.Controls.VisualMarker.Default;
+		static IVisual _defaultVisual = VisualMarker.Default;
 		IVisual _effectiveVisual = _defaultVisual;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Visual']/Docs/*" />
-		[System.ComponentModel.TypeConverter(typeof(VisualTypeConverter))]
+		/// <summary>
+		/// Gets or sets a <see cref="IVisual"/> implementation that overrides the visual appearance of an element. This is a bindable property.
+		/// </summary>
+		[TypeConverter(typeof(VisualTypeConverter))]
 		public IVisual Visual
 		{
 			get { return (IVisual)GetValue(VisualProperty); }
@@ -175,6 +186,7 @@ namespace Microsoft.Maui.Controls
 
 		internal static void SetDefaultVisual(IVisual visual) => _defaultVisual = visual;
 
+		/// <inheritdoc/>
 		IVisual IVisualController.EffectiveVisual
 		{
 			get { return _effectiveVisual; }
@@ -254,11 +266,11 @@ namespace Microsoft.Maui.Controls
 									propertyChanged: (b, o, n) => { (((VisualElement)b).AnchorX, ((VisualElement)b).AnchorY) = (Point)n; });
 
 		/// <summary>Bindable property for <see cref="IsVisible"/>.</summary>
-		public static readonly BindableProperty IsVisibleProperty = BindableProperty.Create("IsVisible", typeof(bool), typeof(VisualElement), true,
+		public static readonly BindableProperty IsVisibleProperty = BindableProperty.Create(nameof(IsVisible), typeof(bool), typeof(VisualElement), true,
 			propertyChanged: (bindable, oldvalue, newvalue) => ((VisualElement)bindable).OnIsVisibleChanged((bool)oldvalue, (bool)newvalue));
 
 		/// <summary>Bindable property for <see cref="Opacity"/>.</summary>
-		public static readonly BindableProperty OpacityProperty = BindableProperty.Create("Opacity", typeof(double), typeof(VisualElement), 1d, coerceValue: (bindable, value) => ((double)value).Clamp(0, 1));
+		public static readonly BindableProperty OpacityProperty = BindableProperty.Create(nameof(Opacity), typeof(double), typeof(VisualElement), 1d, coerceValue: (bindable, value) => ((double)value).Clamp(0, 1));
 
 		/// <summary>Bindable property for <see cref="BackgroundColor"/>.</summary>
 		public static readonly BindableProperty BackgroundColorProperty = BindableProperty.Create(nameof(BackgroundColor), typeof(Color), typeof(VisualElement), null);
@@ -267,13 +279,17 @@ namespace Microsoft.Maui.Controls
 		public static readonly BindableProperty BackgroundProperty = BindableProperty.Create(nameof(Background), typeof(Brush), typeof(VisualElement), Brush.Default,
 			propertyChanging: (bindable, oldvalue, newvalue) =>
 			{
-				if (oldvalue != null)
-					(bindable as VisualElement)?.StopNotifyingBackgroundChanges();
+				if (oldvalue == null)
+					return;
+
+				(bindable as VisualElement)?.StopNotifyingBackgroundChanges();
 			},
 			propertyChanged: (bindable, oldvalue, newvalue) =>
 			{
-				if (newvalue != null)
-					(bindable as VisualElement)?.NotifyBackgroundChanges();
+				if (newvalue == null)
+					return;
+
+				(bindable as VisualElement)?.NotifyBackgroundChanges();
 			});
 
 		WeakBackgroundChangedProxy _backgroundProxy;
@@ -282,6 +298,9 @@ namespace Microsoft.Maui.Controls
 		WeakNotifyPropertyChangedProxy _shadowProxy = null;
 		PropertyChangedEventHandler _shadowChanged;
 
+		/// <summary>
+		/// Frees all resources associated with the handle.
+		/// </summary>
 		~VisualElement()
 		{
 			_clipProxy?.Unsubscribe();
@@ -301,6 +320,9 @@ namespace Microsoft.Maui.Controls
 				_backgroundChanged ??= (sender, e) => OnPropertyChanged(nameof(Background));
 				_backgroundProxy ??= new();
 				_backgroundProxy.Subscribe(background, _backgroundChanged);
+
+				OnParentResourcesChanged(this.GetMergedResources());
+				((IElementDefinition)this).AddResourcesChangedListener(background.OnParentResourcesChanged);
 			}
 		}
 
@@ -312,6 +334,8 @@ namespace Microsoft.Maui.Controls
 
 			if (background != null)
 			{
+				((IElementDefinition)this).RemoveResourcesChangedListener(background.OnParentResourcesChanged);
+
 				SetInheritedBindingContext(background, null);
 				_backgroundProxy?.Unsubscribe();
 			}
@@ -361,7 +385,7 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
-		internal static readonly BindablePropertyKey BehaviorsPropertyKey = BindableProperty.CreateReadOnly("Behaviors", typeof(IList<Behavior>), typeof(VisualElement), default(IList<Behavior>),
+		internal static readonly BindablePropertyKey BehaviorsPropertyKey = BindableProperty.CreateReadOnly(nameof(Behaviors), typeof(IList<Behavior>), typeof(VisualElement), default(IList<Behavior>),
 			defaultValueCreator: bindable =>
 			{
 				var collection = new AttachedCollection<Behavior>();
@@ -372,7 +396,7 @@ namespace Microsoft.Maui.Controls
 		/// <summary>Bindable property for <see cref="Behaviors"/>.</summary>
 		public static readonly BindableProperty BehaviorsProperty = BehaviorsPropertyKey.BindableProperty;
 
-		internal static readonly BindablePropertyKey TriggersPropertyKey = BindableProperty.CreateReadOnly("Triggers", typeof(IList<TriggerBase>), typeof(VisualElement), default(IList<TriggerBase>),
+		internal static readonly BindablePropertyKey TriggersPropertyKey = BindableProperty.CreateReadOnly(nameof(Triggers), typeof(IList<TriggerBase>), typeof(VisualElement), default(IList<TriggerBase>),
 			defaultValueCreator: bindable =>
 			{
 				var collection = new AttachedCollection<TriggerBase>();
@@ -403,9 +427,10 @@ namespace Microsoft.Maui.Controls
 		/// <summary>Bindable property for <see cref="MaximumHeightRequest"/>.</summary>
 		public static readonly BindableProperty MaximumHeightRequestProperty = BindableProperty.Create(nameof(MaximumHeightRequest), typeof(double), typeof(VisualElement), double.PositiveInfinity, propertyChanged: OnRequestChanged);
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='IsFocusedPropertyKey']/Docs/*" />
+		/// <summary>Bindable property for <see cref="IsFocused"/>.</summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
-		public static readonly BindablePropertyKey IsFocusedPropertyKey = BindableProperty.CreateReadOnly("IsFocused",
+		public static readonly BindablePropertyKey IsFocusedPropertyKey = BindableProperty.CreateReadOnly(nameof(IsFocused),
 			typeof(bool), typeof(VisualElement), default(bool), propertyChanged: OnIsFocusedPropertyChanged);
 
 		/// <summary>Bindable property for <see cref="IsFocused"/>.</summary>
@@ -416,8 +441,10 @@ namespace Microsoft.Maui.Controls
 
 		IFlowDirectionController FlowController => this;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='FlowDirection']/Docs/*" />
-		[System.ComponentModel.TypeConverter(typeof(FlowDirectionConverter))]
+		/// <summary>
+		/// Gets or sets the layout flow direction. This is a bindable property.
+		/// </summary>
+		[TypeConverter(typeof(FlowDirectionConverter))]
 		public FlowDirection FlowDirection
 		{
 			get { return (FlowDirection)GetValue(FlowDirectionProperty); }
@@ -444,8 +471,8 @@ namespace Microsoft.Maui.Controls
 
 		}
 
+		/// <inheritdoc/>
 		EffectiveFlowDirection IVisualElementController.EffectiveFlowDirection => FlowController.EffectiveFlowDirection;
-
 
 		static readonly BindablePropertyKey WindowPropertyKey = BindableProperty.CreateReadOnly(
 			nameof(Window), typeof(Window), typeof(VisualElement), null, propertyChanged: OnWindowChanged);
@@ -453,18 +480,21 @@ namespace Microsoft.Maui.Controls
 		/// <summary>Bindable property for <see cref="Window"/>.</summary>
 		public static readonly BindableProperty WindowProperty = WindowPropertyKey.BindableProperty;
 
+		/// <summary>
+		/// Gets the <see cref="Window"/> that is associated with an element. This is a read-only bindable property.
+		/// </summary>
 		public Window Window => (Window)GetValue(WindowProperty);
 
+		/// <inheritdoc/>
 		Window IWindowController.Window
 		{
 			get => (Window)GetValue(WindowProperty);
 			set => SetValue(WindowPropertyKey, value);
 		}
 
-
+#pragma warning disable CS0618 // Type or member is obsolete
 		readonly Dictionary<Size, SizeRequest> _measureCache = new Dictionary<Size, SizeRequest>();
-
-
+#pragma warning restore CS0618 // Type or member is obsolete
 
 		int _batched;
 		LayoutConstraint _computedConstraint;
@@ -485,46 +515,65 @@ namespace Microsoft.Maui.Controls
 
 		LayoutConstraint _selfConstraint;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="VisualElement"/> class.
+		/// </summary>
 		protected internal VisualElement()
 		{
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='AnchorX']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the X component of the center point for any transform operation, relative to the bounds of the element. This is a bindable property.
+		/// </summary>
+		/// <remarks>The default value is 0.5.</remarks>
 		public double AnchorX
 		{
 			get { return (double)GetValue(AnchorXProperty); }
 			set { SetValue(AnchorXProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='AnchorY']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the Y component of the center point for any transform operation, relative to the bounds of the element. This is a bindable property.
+		/// </summary>
+		/// <remarks>The default value is 0.5.</remarks>
 		public double AnchorY
 		{
 			get { return (double)GetValue(AnchorYProperty); }
 			set { SetValue(AnchorYProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='BackgroundColor']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the <see cref="Color"/> which will fill the background of an element. This is a bindable property.
+		/// </summary>
+		/// <remarks>For background gradients and such, use <see cref="Background"/>.</remarks>
 		public Color BackgroundColor
 		{
 			get { return (Color)GetValue(BackgroundColorProperty); }
 			set { SetValue(BackgroundColorProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Background']/Docs/*" />
-		[System.ComponentModel.TypeConverter(typeof(BrushTypeConverter))]
+		/// <summary>
+		/// Gets or sets the <see cref="Brush"/> which will be used to fill the background of an element. This is a bindable property.
+		/// </summary>
+		[TypeConverter(typeof(BrushTypeConverter))]
 		public Brush Background
 		{
 			get { return (Brush)GetValue(BackgroundProperty); }
 			set { SetValue(BackgroundProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Behaviors']/Docs/*" />
+		/// <summary>
+		/// Gets the list of <see cref="Behavior"/> objects associated to this element. This is a read-only bindable property.
+		/// </summary>
 		public IList<Behavior> Behaviors
 		{
 			get { return (IList<Behavior>)GetValue(BehaviorsProperty); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Bounds']/Docs/*" />
+		/// <summary>
+		/// Gets the bounds of the element in device-independent units.
+		/// </summary>
+		/// <remarks><see cref="Bounds"/> is assigned during layout.</remarks>
 		public Rect Bounds
 		{
 			get { return IsMocked() ? new Rect(_mockX, _mockY, _mockWidth, _mockHeight) : _frame; }
@@ -534,28 +583,49 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Height']/Docs/*" />
+		/// <summary>
+		/// Gets the current rendered height of this element. This is a read-only bindable property.
+		/// </summary>
+		/// <remarks>The height of an element is set during layout.</remarks>
 		public double Height
 		{
 			get { return _mockHeight == -1 ? (double)GetValue(HeightProperty) : _mockHeight; }
 			private set { SetValue(HeightPropertyKey, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='HeightRequest']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the desired height override of this element. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is -1, which means the value is unset; the effective minimum height will be zero.</para>
+		/// <para><see cref="HeightRequest"/> does not immediately change the <see cref="Bounds"/> of an element; setting the <see cref="HeightRequest"/> will change the resulting height of the element during the next layout pass.</para>
+		/// </remarks>
 		public double HeightRequest
 		{
 			get { return (double)GetValue(HeightRequestProperty); }
 			set { SetValue(HeightRequestProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='InputTransparent']/Docs/*" />
+		/// <summary>
+		/// Gets or sets a value indicating whether this element responds to hit testing during user interaction. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is <see langword="false"/>.</para>
+		/// <para>Setting <see cref="InputTransparent"/> to <see langword="true"/> makes the element invisible to touch and pointer input. The input is passed to the first non-input-transparent element that is visually behind the input transparent element. </para>
+		/// </remarks>
 		public bool InputTransparent
 		{
 			get { return (bool)GetValue(InputTransparentProperty); }
 			set { SetValue(InputTransparentProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='IsEnabled']/Docs/*" />
+		/// <summary>
+		/// Gets or sets a value indicating whether this element is enabled in the user interface. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is <see langword="true"/>.</para>
+		/// <para>Elements that are not enabled will not receive focus or respond to input events.</para>
+		/// </remarks>
 		public bool IsEnabled
 		{
 			get { return (bool)GetValue(IsEnabledProperty); }
@@ -586,146 +656,270 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='IsFocused']/Docs/*" />
+		/// <summary>
+		/// This value represents the cumulative InputTransparent value.
+		/// All types that override this property need to also invoke
+		/// the RefreshInputTransparentProperty() method if the value will change.
+		/// 
+		/// This method is not virtual as none of the derived types actually need
+		/// to change the calculation. If this ever needs to change, then the
+		/// RefreshInputTransparentProperty() method should also call the
+		/// RefreshPropertyValue() method - just like how the
+		/// RefreshIsEnabledProperty() method does.
+		/// </summary>
+		private protected bool InputTransparentCore
+		{
+			get
+			{
+				if (_inputTransparentExplicit == true)
+				{
+					// If the explicitly set value is true, then nothing else matters
+					// And we can save the effort of a Parent check
+					return true;
+				}
+
+				var parent = Parent as IInputTransparentContainerElement;
+				while (parent is not null)
+				{
+					if (parent.CascadeInputTransparent && parent.InputTransparent)
+						return true;
+					parent = parent.Parent as IInputTransparentContainerElement;
+				}
+
+				return _inputTransparentExplicit;
+			}
+		}
+
+		/// <summary>
+		/// Gets a value indicating whether this element is focused currently. This is a bindable property.
+		/// </summary>
+		/// <remarks>Applications may have multiple focuses depending on the implementation of the underlying platform. Menus and modals in particular may leave multiple items with focus.</remarks>
 		public bool IsFocused => (bool)GetValue(IsFocusedProperty);
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='IsVisible']/Docs/*" />
-		[System.ComponentModel.TypeConverter(typeof(VisibilityConverter))]
+		/// <summary>
+		/// Gets or sets a value that determines whether this element will be visible on screen and take up space in layouts. This is a bindable property.
+		/// </summary>
+		/// <remarks>When an element has <see cref="IsVisible"/> set to <see langword="false"/> it will no longer take up space in layouts or be eligible to receive any kind of input event.</remarks>
+		[TypeConverter(typeof(VisibilityConverter))]
 		public bool IsVisible
 		{
 			get { return (bool)GetValue(IsVisibleProperty); }
 			set { SetValue(IsVisibleProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='MinimumHeightRequest']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the minimum height the element will request during layout. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is -1, which means the value is unset and a height will be determined automatically.</para>
+		/// <para><see cref="MinimumHeightRequest"/> is used to ensure that the element has at least the specified height during layout.</para>
+		/// </remarks>
 		public double MinimumHeightRequest
 		{
 			get { return (double)GetValue(MinimumHeightRequestProperty); }
 			set { SetValue(MinimumHeightRequestProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='MinimumWidthRequest']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the minimum width the element will request during layout. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is -1, which means the value is unset; the effective minimum width will be zero.</para>
+		/// <para><see cref="MinimumWidthRequest"/> is used to ensure that the element has at least the specified width during layout.</para>
+		/// </remarks>
 		public double MinimumWidthRequest
 		{
 			get { return (double)GetValue(MinimumWidthRequestProperty); }
 			set { SetValue(MinimumWidthRequestProperty, value); }
 		}
 
+		/// <summary>
+		/// Gets or sets the maximum height the element will request during layout. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is <see cref="double.PositiveInfinity"/>.</para>
+		/// <para><see cref="MaximumHeightRequest"/> is used to ensure that the element has no more than the specified height during layout.</para>
+		/// </remarks>
 		public double MaximumHeightRequest
 		{
 			get { return (double)GetValue(MaximumHeightRequestProperty); }
 			set { SetValue(MaximumHeightRequestProperty, value); }
 		}
 
+		/// <summary>
+		/// Gets or sets the maximum width the element will request during layout. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is <see cref="double.PositiveInfinity"/>.</para>
+		/// <para><see cref="MaximumWidthRequest"/> is used to ensure the element has no more than the specified width during layout.</para>
+		/// </remarks>
 		public double MaximumWidthRequest
 		{
 			get { return (double)GetValue(MaximumWidthRequestProperty); }
 			set { SetValue(MaximumWidthRequestProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Opacity']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the opacity value applied to the element when it is rendered. The range of this value is 0 to 1; values outside this range will be set to the nearest valid value. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is 1.0.</para>
+		/// <para>
+		/// The opacity value has no effect unless <see cref="IsVisible"/> is <see langword="true"/>. The effective opacity of an element is the value of <see cref="Opacity"/> multiplied by the opacity of the element's <c>Parent</c>. If a parent has 0.5 opacity, and a child has 0.5 opacity, the child will render with an effective 0.25 opacity.
+		/// </para>
+		/// </remarks>
 		public double Opacity
 		{
 			get { return (double)GetValue(OpacityProperty); }
 			set { SetValue(OpacityProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Rotation']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the rotation (in degrees) about the Z-axis (affine rotation) when the element is rendered. This is a bindable property.
+		/// </summary>
+		/// <remarks>Rotation is applied relative to <see cref="AnchorX" /> and <see cref="AnchorY" />.</remarks>
 		public double Rotation
 		{
 			get { return (double)GetValue(RotationProperty); }
 			set { SetValue(RotationProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='RotationX']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the rotation (in degrees) about the X-axis (perspective rotation) when the element is rendered. This is a bindable property.
+		/// </summary>
+		/// <remarks>Rotation is applied relative to <see cref="AnchorX" /> and <see cref="AnchorY" />.</remarks>
 		public double RotationX
 		{
 			get { return (double)GetValue(RotationXProperty); }
 			set { SetValue(RotationXProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='RotationY']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the rotation (in degrees) about the Y-axis (perspective rotation) when the element is rendered. This is a bindable property.
+		/// </summary>
+		/// <remarks>Rotation is applied relative to <see cref="AnchorX" /> and <see cref="AnchorY" />.</remarks>
 		public double RotationY
 		{
 			get { return (double)GetValue(RotationYProperty); }
 			set { SetValue(RotationYProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Scale']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the scale factor applied to the element. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>Default value is 1.0.</para>
+		/// <para><see cref="Scale"/> is applied relative to <see cref="AnchorX" /> and <see cref="AnchorY" />.</para>
+		/// </remarks>
 		public double Scale
 		{
 			get => (double)GetValue(ScaleProperty);
 			set => SetValue(ScaleProperty, value);
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='ScaleX']/Docs/*" />
+		/// <summary>
+		/// Gets or sets a scale value to apply to the X direction. This is a bindable property.
+		/// </summary>
+		/// <remarks>The default value is 1.0.</remarks>
 		public double ScaleX
 		{
 			get => (double)GetValue(ScaleXProperty);
 			set => SetValue(ScaleXProperty, value);
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='ScaleY']/Docs/*" />
+		/// <summary>
+		/// Gets or sets a scale value to apply to the Y direction. This is a bindable property.
+		/// </summary>
+		/// <remarks>The default value is 1.0.</remarks>
 		public double ScaleY
 		{
 			get => (double)GetValue(ScaleYProperty);
 			set => SetValue(ScaleYProperty, value);
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='TranslationX']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the X translation delta of the element. This is a bindable property.
+		/// </summary>
+		/// <remarks>Translation is applied post layout. It is particularly good for applying animations. Translating an element outside the bounds of its parent container may prevent inputs from working.</remarks>
 		public double TranslationX
 		{
 			get { return (double)GetValue(TranslationXProperty); }
 			set { SetValue(TranslationXProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='TranslationY']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the Y translation delta of the element. This is a bindable property.
+		/// </summary>
+		/// <remarks>Translation is applied post layout. It is particularly good for applying animations. Translating an element outside the bounds of its parent container may prevent inputs from working.</remarks>
 		public double TranslationY
 		{
 			get { return (double)GetValue(TranslationYProperty); }
 			set { SetValue(TranslationYProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Triggers']/Docs/*" />
+		/// <summary>
+		/// Gets the list of <see cref="TriggerBase"/> objects associated to this element. This is a read-only bindable property.
+		/// </summary>
 		public IList<TriggerBase> Triggers => (IList<TriggerBase>)GetValue(TriggersProperty);
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Width']/Docs/*" />
+		/// <summary>
+		/// Gets the current width of this element. This is a read-only bindable property.
+		/// </summary>
+		/// <remarks>The width value of an element is set during the layout cycle.</remarks>
 		public double Width
 		{
 			get { return _mockWidth == -1 ? (double)GetValue(WidthProperty) : _mockWidth; }
 			private set { SetValue(WidthPropertyKey, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='WidthRequest']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the desired width override of this element. This is a bindable property.
+		/// </summary>
+		/// <remarks>
+		/// <para>The default value is -1, which means the value is unset and a width will be determined automatically.</para>
+		/// <para><see cref="WidthRequest"/> does not immediately change the <see cref="Bounds"/> of an element; setting the <see cref="WidthRequest"/> will change the resulting width of the element during the next layout pass.</para>
+		/// </remarks>
 		public double WidthRequest
 		{
 			get { return (double)GetValue(WidthRequestProperty); }
 			set { SetValue(WidthRequestProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='X']/Docs/*" />
+		/// <summary>
+		/// Gets the current X position of this element. This is a read-only bindable property.
+		/// </summary>
+		/// <remarks>The position of an element is set during layout.</remarks>
 		public double X
 		{
 			get { return _mockX == -1 ? (double)GetValue(XProperty) : _mockX; }
 			private set { SetValue(XPropertyKey, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Y']/Docs/*" />
+		/// <summary>
+		/// Gets the current Y position of this element. This is a read-only bindable property.
+		/// </summary>
+		/// <remarks>The position of an element is set during layout.</remarks>
 		public double Y
 		{
 			get { return _mockY == -1 ? (double)GetValue(YProperty) : _mockY; }
 			private set { SetValue(YPropertyKey, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Clip']/Docs/*" />
-		[System.ComponentModel.TypeConverter(typeof(PathGeometryConverter))]
+		/// <summary>
+		/// Specifies the clipping region for an element. This is a bindable property.
+		/// </summary>
+		/// <remarks>When an element is rendered, only the portion of the element that falls inside the clipping <see cref="Geometry"/> is displayed, while any content that extends outside the clipping region is clipped (that is, not displayed).</remarks>
+		[TypeConverter(typeof(PathGeometryConverter))]
 		public Geometry Clip
 		{
 			get { return (Geometry)GetValue(ClipProperty); }
 			set { SetValue(ClipProperty, value); }
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Batched']/Docs/*" />
+		/// <summary>
+		/// Gets a value that indicates there are batched changes done for this element.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public bool Batched => _batched > 0;
 
@@ -747,10 +941,17 @@ namespace Microsoft.Maui.Controls
 
 		internal LayoutConstraint Constraint => ComputedConstraint | SelfConstraint;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='DisableLayout']/Docs/*" />
+		/// <summary>
+		/// Gets a value that indicates that layout for this element is disabled.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public bool DisableLayout { get; set; }
 
+		/// <summary>
+		/// Gets or sets a value that indicates that this element is currently going through the platform layout cycle.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public bool IsInPlatformLayout
 		{
@@ -772,6 +973,10 @@ namespace Microsoft.Maui.Controls
 			set { _isInPlatformLayout = value; }
 		}
 
+		/// <summary>
+		/// Gets or sets a value that indicates that this element is currently consistent with the platform equivalent element state.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public bool IsPlatformStateConsistent
 		{
@@ -789,7 +994,10 @@ namespace Microsoft.Maui.Controls
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		internal event EventHandler PlatformEnabledChanged;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='IsPlatformEnabled']/Docs/*" />
+		/// <summary>
+		/// Gets or sets a value that indicates whether this elements's platform equivalent element is enabled.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public bool IsPlatformEnabled
 		{
@@ -826,10 +1034,19 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='BatchBegin']/Docs/*" />
+		/// <summary>
+		/// Signals the start of a batch of changes to the elements properties. This can benefit performance if a bigger number of property values are changed.
+		/// </summary>
+		/// <remarks>
+		/// <para>Application authors will generally not need to batch updates manually as the animation framework will do this for them.</para>
+		/// <para>When the operation is done, <see cref="BatchCommit"/> should be called.</para>
+		/// </remarks>
 		public void BatchBegin() => _batched++;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='BatchCommit']/Docs/*" />
+		/// <summary>
+		/// Signals the end of a batch of commands to the element and that those commands should now be committed.
+		/// </summary>
+		/// <remarks>This method only ensures that updates sent during the batch have been committed. It does not ensure that they were not committed before calling this.</remarks>
 		public void BatchCommit()
 		{
 			_batched = Math.Max(0, _batched - 1);
@@ -842,7 +1059,14 @@ namespace Microsoft.Maui.Controls
 		ResourceDictionary _resources;
 		bool IResourcesProvider.IsResourcesCreated => _resources != null;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Resources']/Docs/*" />
+		/// <summary>
+		/// Gets or sets the local resource dictionary.
+		/// </summary>
+		/// <remarks>
+		/// <para>In XAML, resource dictionaries are filled with key/value pairs that are specified in XAML and consequently created at runtime. The keys in the resource dictionary are specified with the <c>x:Key</c> attribute of the XAML tag for the type to create. An object of that type is created, and is initialized with the property and field values that are specified either by additional attributes or by nested tags, both of which, when present, are simply string representations of the property or field names. The object is then inserted into the <see cref="ResourceDictionary" /> for the enclosing type at runtime.</para>
+		/// <para>Resource dictionaries and their associated XML provide the application developer with a convenient method to reuse code inside the XAML compile-time and runtime engines.</para>
+		/// <para>For more information, see: <see href="https://learn.microsoft.com/dotnet/maui/fundamentals/resource-dictionaries">Resource Dictionaries (Microsoft Learn)</see>.</para>
+		/// </remarks>
 		public ResourceDictionary Resources
 		{
 			get
@@ -868,17 +1092,34 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <summary>
+		/// Signals that the platform equivalent element for this element's size has changed and a new layout cycle might be needed.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public void PlatformSizeChanged() => InvalidateMeasureInternal(InvalidationTrigger.MeasureChanged);
 
+		/// <summary>
+		/// Occurs when the order of this element's children changes.
+		/// </summary>
 		public event EventHandler ChildrenReordered;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Focus']/Docs/*" />
+		/// <summary>
+		/// Attempts to set focus to this element.
+		/// </summary>
+		/// <returns>
+		/// <see langword="true"/> if the keyboard focus was set to this element; <see langword = "false" /> if the call to this method did not force a focus change.
+		/// </returns>
+		/// <remarks>Element must be able to receive focus for this to work. Calling <see cref="Focus"/> on offscreen or unrealized elements has undefined behavior.</remarks>
 		public bool Focus() =>
 			this.RequestFocus();
 
+		/// <summary>
+		/// Occurs when this element is focused.
+		/// </summary>
 		public event EventHandler<FocusEventArgs> Focused;
 
+		[Obsolete]
 		SizeRequest GetSizeRequest(double widthConstraint, double heightConstraint)
 		{
 			var constraintSize = new Size(widthConstraint, heightConstraint);
@@ -930,7 +1171,29 @@ namespace Microsoft.Maui.Controls
 			return r;
 		}
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Measure']/Docs/*" />
+		/// <summary>
+		/// Returns the minimum size that an element needs in order to be displayed on the device. Margins are excluded from the measurement, but returned with the size.
+		/// It is not recommended to call this method outside of the `MeasureOverride` pass on the parent element.
+		/// </summary>
+		/// <param name="widthConstraint">The suggested maximum width constraint for the element to render.</param>
+		/// <param name="heightConstraint">The suggested maximum height constraint for the element to render.</param>
+		/// <returns>The minimum size that an element needs in order to be displayed on the device. </returns>
+		/// <remarks>If the minimum size that the element needs in order to be displayed on the device is larger than can be accommodated by <paramref name="widthConstraint" /> and <paramref name="heightConstraint" />, the return value may represent a rectangle that is larger in either one or both of those parameters.</remarks>
+		public Size Measure(double widthConstraint, double heightConstraint)
+		{
+			var result = (this as IView).Measure(widthConstraint, heightConstraint);
+			return result;
+		}
+
+		/// <summary>
+		/// Returns the minimum size that an element needs in order to be displayed on the device.
+		/// </summary>
+		/// <param name="widthConstraint">The suggested maximum width constraint for the element to render.</param>
+		/// <param name="heightConstraint">The suggested maximum height constraint for the element to render.</param>
+		/// <param name="flags">A value that controls whether margins are included in the returned size.</param>
+		/// <returns>The minimum size that an element needs in order to be displayed on the device.</returns>
+		/// <remarks>If the minimum size that the element needs in order to be displayed on the device is larger than can be accommodated by <paramref name="widthConstraint" /> and <paramref name="heightConstraint" />, the return value may represent a rectangle that is larger in either one or both of those parameters.</remarks>
+		[Obsolete("Use Measure with no flags.")]
 		public virtual SizeRequest Measure(double widthConstraint, double heightConstraint, MeasureFlags flags = MeasureFlags.None)
 		{
 			bool includeMargins = (flags & MeasureFlags.IncludeMargins) != 0;
@@ -955,11 +1218,20 @@ namespace Microsoft.Maui.Controls
 			return result;
 		}
 
+		/// <summary>
+		/// Occurs when the current measure of an element has been invalidated.
+		/// </summary>
 		public event EventHandler MeasureInvalidated;
 
+		/// <summary>
+		/// Occurs when the size of an element changed.
+		/// </summary>
 		public event EventHandler SizeChanged;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Unfocus']/Docs/*" />
+		/// <summary>
+		/// Unsets keyboard focus on this element.
+		/// </summary>
+		/// <remarks>Element must already have focus for this to have any effect.</remarks>
 		public void Unfocus()
 		{
 			if (!IsFocused)
@@ -969,10 +1241,20 @@ namespace Microsoft.Maui.Controls
 			FocusChangeRequested?.Invoke(this, new FocusRequestArgs());
 		}
 
+		/// <summary>
+		/// Occurs when this element is unfocused.
+		/// </summary>
+		/// <remarks>This event is not triggered when the element does not currently have focus.</remarks>
 		public event EventHandler<FocusEventArgs> Unfocused;
 
+		/// <summary>
+		/// Marks the current measure of an element as invalidated.
+		/// </summary>
 		protected virtual void InvalidateMeasure() => InvalidateMeasureInternal(InvalidationTrigger.MeasureChanged);
 
+		/// <summary>
+		/// Invoked when the binding context of this element has changed.
+		/// </summary>
 		protected override void OnBindingContextChanged()
 		{
 			PropagateBindingContextToStateTriggers();
@@ -982,47 +1264,77 @@ namespace Microsoft.Maui.Controls
 			base.OnBindingContextChanged();
 		}
 
+		/// <summary>
+		/// Invoked when a child object is added to this element.
+		/// </summary>
+		/// <param name="child">The child object that is added to this element.</param>
 		protected override void OnChildAdded(Element child)
 		{
 			base.OnChildAdded(child);
 
-			var view = child as View;
-
-			if (view != null)
+			if (child is View view)
+			{
 				ComputeConstraintForView(view);
+			}
 		}
 
+		/// <summary>
+		/// Invoked when a child object is removed from this element.
+		/// </summary>
+		/// <param name="child">The child element that is removed from this element.</param>
+		/// <param name="oldLogicalIndex">The logical index <paramref name="child"/> previously had within this element.</param>
 		protected override void OnChildRemoved(Element child, int oldLogicalIndex)
 		{
 			base.OnChildRemoved(child, oldLogicalIndex);
 
 			if (child is View view)
+			{
 				view.ComputedConstraint = LayoutConstraint.None;
+			}
 		}
 
+		/// <summary>
+		/// Raises the <see cref="ChildrenReordered"/> event.
+		/// </summary>
 		protected void OnChildrenReordered()
 			=> ChildrenReordered?.Invoke(this, EventArgs.Empty);
 
-		IPlatformSizeService _platformSizeService;
-
+		/// <summary>
+		/// Method that is called when a layout measurement happens.
+		/// </summary>
+		/// <param name="widthConstraint">The width constraint to request.</param>
+		/// <param name="heightConstraint">The height constraint to request.</param>
+		/// <returns>The requested size that the element requires in order to be displayed on the device.</returns>
+		[Obsolete("Use MeasureOverride instead")]
 		protected virtual SizeRequest OnMeasure(double widthConstraint, double heightConstraint)
 		{
 			if (!IsPlatformEnabled)
 				return new SizeRequest(new Size(-1, -1));
 
-			if (Handler != null)
-				return new SizeRequest(Handler.GetDesiredSize(widthConstraint, heightConstraint));
-
-			_platformSizeService ??= DependencyService.Get<IPlatformSizeService>();
-			return _platformSizeService.GetPlatformSize(this, widthConstraint, heightConstraint);
+			return Handler?.GetDesiredSize(widthConstraint, heightConstraint) ?? new();
 		}
 
+		/// <summary>
+		/// Method that is called when the size of the element is set during a layout cycle. Implement this method to add class handling for this event.
+		/// </summary>
+		/// <param name="width">The new width of the element.</param>
+		/// <param name="height">The new height of the element.</param>
 		protected virtual void OnSizeAllocated(double width, double height)
 		{
 		}
 
+		/// <summary>
+		/// Method that is called during a layout cycle to signal the start of a sub-tree layout.
+		/// </summary>
+		/// <param name="width">The newly allocated width.</param>
+		/// <param name="height">The newly allocated height.</param>
+		/// <remarks>Calling <see cref="SizeAllocated(double, double)"/> will start a new layout cycle on the children of the element. Excessive calls to this method may cause performance problems.</remarks>
 		protected void SizeAllocated(double width, double height) => OnSizeAllocated(width, height);
 
+		/// <summary>
+		/// Occurs when a batch of property changes have been committed by calling <see cref="BatchCommit"/>.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public event EventHandler<EventArg<VisualElement>> BatchCommitted;
 
@@ -1037,28 +1349,41 @@ namespace Microsoft.Maui.Controls
 
 		internal virtual void ComputeConstraintForView(View view) => view.ComputedConstraint = LayoutConstraint.None;
 
-		// TODO: Obsolete in favor of MapFocus https://github.com/dotnet/maui/issues/14299
+		/// <summary>
+		/// Occurs when a focus change is requested.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
+		[Obsolete("This is now handled through VisualElement.MapFocus, this event handler will be removed in the future.")]
 		[EditorBrowsable(EditorBrowsableState.Never)]
 		public event EventHandler<FocusRequestArgs> FocusChangeRequested;
 		internal void InvokeFocusChangeRequested(FocusRequestArgs args) =>
 			FocusChangeRequested?.Invoke(this, args);
 		internal bool HasFocusChangeRequestedEvent => FocusChangeRequested is not null;
 
-		/// <include file="../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='InvalidateMeasureNonVirtual']/Docs/*" />
+		/// <summary>
+		/// Invalidates the measure of an element.
+		/// </summary>
+		/// <remarks>For internal use only. This API can be changed or removed without notice at any time.</remarks>
 		[EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("Use InvalidateMeasure instead.")]
 		public void InvalidateMeasureNonVirtual(InvalidationTrigger trigger)
 		{
 			InvalidateMeasureInternal(trigger);
 		}
 
-		internal virtual void InvalidateMeasureInternal(InvalidationTrigger trigger)
+		internal void InvalidateMeasureInternal(InvalidationTrigger trigger)
+		{
+			InvalidateMeasureInternal(new InvalidationEventArgs(trigger, 0));
+		}
+
+		internal virtual void InvalidateMeasureInternal(InvalidationEventArgs eventArgs)
 		{
 			_measureCache.Clear();
 
 			// TODO ezhart Once we get InvalidateArrange sorted, HorizontalOptionsChanged and 
 			// VerticalOptionsChanged will need to call ParentView.InvalidateArrange() instead
 
-			switch (trigger)
+			switch (eventArgs.Trigger)
 			{
 				case InvalidationTrigger.MarginChanged:
 				case InvalidationTrigger.HorizontalOptionsChanged:
@@ -1070,9 +1395,53 @@ namespace Microsoft.Maui.Controls
 					break;
 			}
 
-			MeasureInvalidated?.Invoke(this, new InvalidationEventArgs(trigger));
+			FireMeasureChanged(eventArgs);
 		}
 
+		private protected void FireMeasureChanged(InvalidationTrigger trigger, int depth)
+		{
+			FireMeasureChanged(new InvalidationEventArgs(trigger, depth));
+		}
+
+
+		private protected void FireMeasureChanged(InvalidationEventArgs args)
+		{
+			var depth = args.CurrentInvalidationDepth;
+			MeasureInvalidated?.Invoke(this, args);
+			(Parent as VisualElement)?.OnChildMeasureInvalidatedInternal(this, args.Trigger, ++depth);
+		}
+
+		// We don't want to change the execution path of Page or Layout when they are calling "InvalidationMeasure"
+		// If you look at page it calls OnChildMeasureInvalidated from OnChildMeasureInvalidatedInternal
+		// Because OnChildMeasureInvalidated is public API and the user might override it, we need to keep it as is
+		//private protected int CurrentInvalidationDepth { get; set; }
+
+		internal virtual void OnChildMeasureInvalidatedInternal(VisualElement child, InvalidationTrigger trigger, int depth)
+		{
+			switch (trigger)
+			{
+				case InvalidationTrigger.VerticalOptionsChanged:
+				case InvalidationTrigger.HorizontalOptionsChanged:
+					// When a child changes its HorizontalOptions or VerticalOptions
+					// the size of the parent won't change, so we don't have to invalidate the measure
+					return;
+				case InvalidationTrigger.RendererReady:
+				// Undefined happens in many cases, including when `IsVisible` changes
+				case InvalidationTrigger.Undefined:
+					FireMeasureChanged(trigger, depth);
+					return;
+				default:
+					// When visibility changes `InvalidationTrigger.Undefined` is used,
+					// so here we're sure that visibility didn't change
+					if (child.IsVisible)
+					{
+						FireMeasureChanged(InvalidationTrigger.MeasureChanged, depth);
+					}
+					return;
+			}
+		}
+
+		/// <inheritdoc/>
 		void IVisualElementController.InvalidateMeasure(InvalidationTrigger trigger) => InvalidateMeasureInternal(trigger);
 
 		internal void InvalidateStateTriggers(bool attach)
@@ -1195,6 +1564,9 @@ namespace Microsoft.Maui.Controls
 				ChangeVisualState();
 		}
 
+		/// <summary>
+		/// Changes the current visual state based on this elements current property values.
+		/// </summary>
 		protected internal virtual void ChangeVisualState()
 		{
 			if (!IsEnabled)
@@ -1276,6 +1648,22 @@ namespace Microsoft.Maui.Controls
 			(bindable as IPropertyPropagationController)?.PropagatePropertyChanged(VisualElement.IsEnabledProperty.PropertyName);
 		}
 
+		static object CoerceInputTransparentProperty(BindableObject bindable, object value)
+		{
+			if (bindable is VisualElement visualElement)
+			{
+				visualElement._inputTransparentExplicit = (bool)value;
+				return visualElement.InputTransparentCore;
+			}
+
+			return false;
+		}
+
+		static void OnInputTransparentPropertyChanged(BindableObject bindable, object oldValue, object newValue)
+		{
+			(bindable as IPropertyPropagationController)?.PropagatePropertyChanged(VisualElement.InputTransparentProperty.PropertyName);
+		}
+
 		static void OnIsFocusedPropertyChanged(BindableObject bindable, object oldvalue, object newvalue)
 		{
 			var element = (VisualElement)bindable;
@@ -1302,11 +1690,11 @@ namespace Microsoft.Maui.Controls
 		{
 			var constraint = LayoutConstraint.None;
 			var element = (VisualElement)bindable;
-			if (element.WidthRequest >= 0 && element.MinimumWidthRequest >= 0)
+			if (element.WidthRequest >= 0)
 			{
 				constraint |= LayoutConstraint.HorizontallyFixed;
 			}
-			if (element.HeightRequest >= 0 && element.MinimumHeightRequest >= 0)
+			if (element.HeightRequest >= 0)
 			{
 				constraint |= LayoutConstraint.VerticallyFixed;
 			}
@@ -1335,15 +1723,32 @@ namespace Microsoft.Maui.Controls
 			if (propertyName == null || propertyName == IsEnabledProperty.PropertyName)
 				this.RefreshPropertyValue(IsEnabledProperty, _isEnabledExplicit);
 
+			if (propertyName == null || propertyName == InputTransparentProperty.PropertyName)
+				this.RefreshPropertyValue(InputTransparentProperty, _inputTransparentExplicit);
+
 			PropertyPropagationExtensions.PropagatePropertyChanged(propertyName, this, ((IVisualTreeElement)this).GetVisualChildren());
 		}
 
 		/// <summary>
 		/// This method must always be called if some event occurs and the value of
-		/// the IsEnabledCore property will change.
+		/// the <see cref="IsEnabledCore"/> property will change.
 		/// </summary>
 		protected void RefreshIsEnabledProperty() =>
 			this.RefreshPropertyValue(IsEnabledProperty, _isEnabledExplicit);
+
+		/// <summary>
+		/// This method must always be called if some event occurs and the value of
+		/// the InputTransparentCore property will change.
+		/// </summary>
+		private protected void RefreshInputTransparentProperty()
+		{
+			// This method does not need to call the
+			// this.RefreshPropertyValue(InputTransparentProperty, _inputTransparentExplicit);
+			// method because none of the derived types will affect this view. All we
+			// need to do is propagate the new value to all the children.
+
+			(this as IPropertyPropagationController)?.PropagatePropertyChanged(VisualElement.InputTransparentProperty.PropertyName);
+		}
 
 		void UpdateBoundsComponents(Rect bounds)
 		{
@@ -1372,6 +1777,10 @@ namespace Microsoft.Maui.Controls
 		event EventHandler? _windowChanged;
 		event EventHandler? _platformContainerViewChanged;
 
+		/// <summary>
+		/// Gets or sets the frame this element resides in on screen.
+		/// </summary>
+		/// <remarks>Setting this property outside of <see cref="ArrangeOverride"/> won't do anything. If you want to influence this property you'll need to override <see cref="ArrangeOverride"/></remarks>
 		public Rect Frame
 		{
 			get => _frame;
@@ -1384,6 +1793,9 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the <see cref="IViewHandler"/> associated to this element.
+		/// </summary>
 		new public IViewHandler? Handler
 		{
 			get => (IViewHandler?)base.Handler;
@@ -1398,6 +1810,7 @@ namespace Microsoft.Maui.Controls
 			UpdatePlatformUnloadedLoadedWiring(Window);
 		}
 
+		/// <inheritdoc/>
 		Paint? IView.Background
 		{
 			get
@@ -1411,8 +1824,10 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		IShape IView.Clip => Clip;
 
+		/// <inheritdoc/>
 		IShadow IView.Shadow => Shadow;
 
 		/// <summary>Bindable property for <see cref="Shadow"/>.</summary>
@@ -1429,6 +1844,9 @@ namespace Microsoft.Maui.Controls
 						(bindable as VisualElement)?.NotifyShadowChanges();
 				});
 
+		/// <summary>
+		/// Gets or sets the shadow effect cast by the element. This is a bindable property.
+		/// </summary>
 		public Shadow Shadow
 		{
 			get { return (Shadow)GetValue(ShadowProperty); }
@@ -1448,26 +1866,46 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <summary>
+		/// Gets or sets the front-to-back z-index of an element within a layout. This is a bindable property.
+		/// </summary>
+		/// <remarks>An element with a higher <see cref="ZIndex"/> value will be shown on top of an element with a lower <see cref="ZIndex"/> value.</remarks>
 		public int ZIndex
 		{
 			get { return (int)GetValue(ZIndexProperty); }
 			set { SetValue(ZIndexProperty, value); }
 		}
 
+		/// <summary>
+		/// Gets the size that this element computed during the measure pass of the layout process.
+		/// </summary>
 		public Size DesiredSize { get; protected set; }
 
+		/// <summary>
+		/// Positions child objects and determines a size for an element.
+		/// </summary>
+		/// <param name="bounds">The final size that the parent computes for the child in layout, provided as a <see cref="Rect"/> value.</param>
+		/// <remarks>
+		/// Parent objects that implement custom layout for their child elements should call this method from their layout override implementations to form a recursive layout update.
+		/// Prior to .NET 9, this method simply called <see cref="Layout"/>. If you need to revert to the old behavior, just call <see cref="Layout"/>.
+		/// </remarks>
 		public void Arrange(Rect bounds)
 		{
-			Layout(bounds);
+			ArrangeOverride(bounds);
 		}
 
+		/// <inheritdoc/>
 		Size IView.Arrange(Rect bounds)
 		{
 			return ArrangeOverride(bounds);
 		}
 
-		// ArrangeOverride provides a way to allow subclasses (e.g., ScrollView) to override Arrange even though
-		// the interface has to be explicitly implemented to avoid conflict with the old Arrange method
+		/// <summary>
+		/// Allows subclasses to implement custom Arrange logic during a controls layout pass.
+		/// </summary>
+		/// <param name="bounds">The new bounds of the element.</param>
+		/// <returns>The resulting size of this element's frame by the platform.</returns>
+		/// <remarks>Subclasses will stil want to call <see cref="ArrangeOverride"/> on the base class or call <see cref="IViewHandler.PlatformArrange"/> on the <see cref="Handler"/> .</remarks>
 		protected virtual Size ArrangeOverride(Rect bounds)
 		{
 			Frame = this.ComputeFrame(bounds);
@@ -1475,51 +1913,70 @@ namespace Microsoft.Maui.Controls
 			return Frame.Size;
 		}
 
-		/// <include file="../../../docs/Microsoft.Maui.Controls/VisualElement.xml" path="//Member[@MemberName='Layout']/Docs/*" />
+		/// <summary>
+		/// Updates the bounds of the element during the layout cycle.
+		/// </summary>
+		/// <param name="bounds">The new bounds of the element.</param>
+		/// <remarks>Calling this method will trigger a layout cycle for the sub-tree of this element.</remarks>
 		public void Layout(Rect bounds)
 		{
 			Bounds = bounds;
 		}
 
+		/// <inheritdoc/>
 		void IView.InvalidateMeasure()
 		{
 			InvalidateMeasureOverride();
 		}
 
-		// InvalidateMeasureOverride provides a way to allow subclasses (e.g., Layout) to override InvalidateMeasure even though
-		// the interface has to be explicitly implemented to avoid conflict with the VisualElement.InvalidateMeasure method
+		/// <summary>
+		/// Provides a way to allow subclasses (e.g., Layout) to override <see cref="InvalidateMeasure"/>
+		/// </summary>
 		protected virtual void InvalidateMeasureOverride() => Handler?.Invoke(nameof(IView.InvalidateMeasure));
 
+		/// <inheritdoc/>
 		void IView.InvalidateArrange()
 		{
 		}
 
+		/// <inheritdoc/>
 		Size IView.Measure(double widthConstraint, double heightConstraint)
 		{
-			return MeasureOverride(widthConstraint, heightConstraint);
-		}
-
-		// MeasureOverride provides a way to allow subclasses (e.g., Layout) to override Measure even though
-		// the interface has to be explicitly implemented to avoid conflict with the old Measure method
-		protected virtual Size MeasureOverride(double widthConstraint, double heightConstraint)
-		{
-			DesiredSize = this.ComputeDesiredSize(widthConstraint, heightConstraint);
+			DesiredSize = MeasureOverride(widthConstraint, heightConstraint);
 			return DesiredSize;
 		}
 
+		/// <summary>
+		/// Allows subclasses to implement custom Measure logic during a controls measure pass.
+		/// </summary>
+		/// <param name="widthConstraint">The width constraint to request.</param>
+		/// <param name="heightConstraint">The height constraint to request.</param>
+		/// <returns>The requested size that an element wants in order to be displayed on the device.</returns>
+		protected virtual Size MeasureOverride(double widthConstraint, double heightConstraint)
+		{
+			return this.ComputeDesiredSize(widthConstraint, heightConstraint);
+		}
+
+		/// <inheritdoc/>
 		bool IView.IsFocused
 		{
 			get => (bool)GetValue(IsFocusedProperty);
-			set => SetValueCore(IsFocusedPropertyKey, value);
+			set => SetValue(IsFocusedPropertyKey, value, SetterSpecificity.FromHandler);
 		}
 
+		/// <inheritdoc/>
 		FlowDirection IView.FlowDirection => FlowDirection;
 
+		/// <inheritdoc/>
 		Primitives.LayoutAlignment IView.HorizontalLayoutAlignment => default;
+
+		/// <inheritdoc/>
 		Primitives.LayoutAlignment IView.VerticalLayoutAlignment => default;
 
+		/// <inheritdoc/>
 		Visibility IView.Visibility => IsVisible.ToVisibility();
 
+		/// <inheritdoc/>
 		Semantics? IView.Semantics => UpdateSemantics();
 
 		private protected virtual Semantics? UpdateSemantics()
@@ -1549,6 +2006,20 @@ namespace Microsoft.Maui.Controls
 			return value;
 		}
 
+		private protected override void UpdateHandlerValue(string property, bool valueChanged)
+		{
+			// The HeightProperty and WidthProperty are not designed to propagate back to the handler.
+			// Instead, we use WidthRequestProperty and HeightRequestProperty to propagate changes to the handler.
+			// HeightProperty and WidthProperty are readonly and only update when the VisualElement.Frame property is set
+			// during an arrange pass, which indicates the actual width and height of the platform element.
+			// Changes to WidthRequestProperty and HeightRequestProperty will propagate to the handler via the `OnRequestChanged` method.
+			if (valueChanged && this.Batched && (property == HeightProperty.PropertyName || property == WidthProperty.PropertyName))
+				return;
+
+			base.UpdateHandlerValue(property, valueChanged);
+		}
+
+		/// <inheritdoc/>
 		double IView.Width
 		{
 			get
@@ -1571,6 +2042,7 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		double IView.Height
 		{
 			get
@@ -1593,6 +2065,7 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		double IView.MinimumWidth
 		{
 			get
@@ -1609,6 +2082,7 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		double IView.MinimumHeight
 		{
 			get
@@ -1625,6 +2099,7 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		double IView.MaximumWidth
 		{
 			get
@@ -1636,6 +2111,7 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		double IView.MaximumHeight
 		{
 			get
@@ -1647,9 +2123,11 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		Thickness IView.Margin => Thickness.Zero;
 
-		IElementHandler? Maui.IElement.Handler
+		/// <inheritdoc/>
+		IElementHandler? IElement.Handler
 		{
 			get => base.Handler;
 			set
@@ -1671,6 +2149,9 @@ namespace Microsoft.Maui.Controls
 				_shadowChanged ??= (sender, e) => OnPropertyChanged(nameof(Shadow));
 				_shadowProxy ??= new();
 				_shadowProxy.Subscribe(shadow, _shadowChanged);
+
+				OnParentResourcesChanged(this.GetMergedResources());
+				((IElementDefinition)this).AddResourcesChangedListener(shadow.OnParentResourcesChanged);
 			}
 		}
 
@@ -1680,6 +2161,8 @@ namespace Microsoft.Maui.Controls
 
 			if (shadow is not null)
 			{
+				((IElementDefinition)this).RemoveResourcesChangedListener(shadow.OnParentResourcesChanged);
+
 				SetInheritedBindingContext(shadow, null);
 				_shadowProxy?.Unsubscribe();
 			}
@@ -1703,7 +2186,7 @@ namespace Microsoft.Maui.Controls
 		}
 
 		/// <summary>
-		/// Indicates if a VisualElement is connected to the main object tree.
+		/// Indicates if an element is connected to the main object tree.
 		/// </summary>
 		public bool IsLoaded
 		{
@@ -1720,17 +2203,26 @@ namespace Microsoft.Maui.Controls
 		}
 
 		/// <summary>
-		/// Occurs when a VisualElement has been constructed and added to the object tree.
-		/// This event may occur before the VisualElement has been measured so should not be relied on for size information.  
+		/// Occurs when an element has been constructed and added to the platform visual tree.
 		/// </summary>
+		/// <remarks>This event may occur before the element has been measured so should not be relied on for size information.</remarks>
 		public event EventHandler? Loaded
 		{
 			add
 			{
+				bool loadedAlreadyFired = _isLoadedFired;
+
 				_loaded += value;
 				UpdatePlatformUnloadedLoadedWiring(Window);
-				if (_isLoadedFired)
-					_loaded?.Invoke(this, EventArgs.Empty);
+
+				// The first time UpdatePlatformUnloadedLoadedWiring is called it will handle
+				// invoking _loaded
+				// This is only to make sure that new subscribers get invoked when the element is already loaded
+				// and a previous subscriber has already invoked the UpdatePlatformUnloadedLoadedWiring path
+				if (loadedAlreadyFired && _isLoadedFired)
+				{
+					value?.Invoke(this, EventArgs.Empty);
+				}
 
 			}
 			remove
@@ -1741,7 +2233,7 @@ namespace Microsoft.Maui.Controls
 		}
 
 		/// <summary>
-		/// Occurs when this VisualElement is no longer connected to the main object tree.
+		/// Occurs when an element is no longer connected to the platform visual tree.
 		/// </summary>
 		public event EventHandler? Unloaded
 		{
@@ -1757,34 +2249,51 @@ namespace Microsoft.Maui.Controls
 			}
 		}
 
+		/// <inheritdoc/>
 		event EventHandler? IControlsVisualElement.WindowChanged
 		{
 			add => _windowChanged += value;
 			remove => _windowChanged -= value;
 		}
 
+		/// <inheritdoc/>
 		event EventHandler? IControlsVisualElement.PlatformContainerViewChanged
 		{
 			add => _platformContainerViewChanged += value;
 			remove => _platformContainerViewChanged -= value;
 		}
 
-		void OnLoadedCore()
+		void SendLoaded() => SendLoaded(true);
+		void SendLoaded(bool updateWiring)
 		{
 			if (_isLoadedFired)
 				return;
 
 			_isLoadedFired = true;
 			_loaded?.Invoke(this, EventArgs.Empty);
+
+			// If the user is also watching unloaded we need to verify
+			// unloaded is still correctly being watched for.
+
+			if (updateWiring)
+			{
+				UpdatePlatformUnloadedLoadedWiring(Window);
+			}
 		}
 
-		void OnUnloadedCore()
+		void SendUnloaded() => SendUnloaded(true);
+		void SendUnloaded(bool updateWiring)
 		{
 			if (!_isLoadedFired)
 				return;
 
 			_isLoadedFired = false;
 			_unloaded?.Invoke(this, EventArgs.Empty);
+
+			// If the user is also watching loaded we need to verify
+			// loaded is still correctly being watched for.
+			if (updateWiring)
+				UpdatePlatformUnloadedLoadedWiring(Window);
 		}
 
 		static void OnWindowChanged(BindableObject bindable, object? oldValue, object? newValue)
@@ -1792,10 +2301,10 @@ namespace Microsoft.Maui.Controls
 			if (bindable is not VisualElement visualElement)
 				return;
 
-			if (visualElement._watchingPlatformLoaded && oldValue is Window oldWindow)
-				oldWindow.HandlerChanged -= visualElement.OnWindowHandlerChanged;
+			var newWindow = (Window?)newValue;
+			var oldWindow = (Window?)oldValue;
 
-			visualElement.UpdatePlatformUnloadedLoadedWiring(newValue as Window);
+			visualElement.UpdatePlatformUnloadedLoadedWiring(newWindow, oldWindow);
 			visualElement.InvalidateStateTriggers(newValue != null);
 			visualElement._windowChanged?.Invoke(visualElement, EventArgs.Empty);
 		}
@@ -1809,18 +2318,18 @@ namespace Microsoft.Maui.Controls
 		// if the user is watching for them. Otherwise
 		// this will get wired up for every single VE that's on 
 		// the screen
-		void UpdatePlatformUnloadedLoadedWiring(Window? window)
+		void UpdatePlatformUnloadedLoadedWiring(Window? newWindow, Window? oldWindow = null)
 		{
 			// If I'm not attached to a window and I haven't started watching any platform events
 			// then it's not useful to wire anything up. We will just wait until
 			// This VE gets connected to the xplat Window before wiring up any events
-			if (!_watchingPlatformLoaded && window == null)
+			if (!_watchingPlatformLoaded && newWindow is null)
 				return;
 
-			if (_unloaded == null && _loaded == null)
+			if (_unloaded is null && _loaded is null)
 			{
-				if (window is not null)
-					window.HandlerChanged -= OnWindowHandlerChanged;
+				if (newWindow is not null)
+					newWindow.HandlerChanged -= OnWindowHandlerChanged;
 
 #if PLATFORM
 				_loadedUnloadedToken?.Dispose();
@@ -1830,11 +2339,23 @@ namespace Microsoft.Maui.Controls
 				_watchingPlatformLoaded = false;
 				return;
 			}
+			else if (oldWindow is not null)
+			{
+				oldWindow.HandlerChanged -= OnWindowHandlerChanged;
+				_watchingPlatformLoaded = false;
+
+				if (newWindow is null)
+				{
+					// This will take care of cleaning up any pending unloaded events
+					HandlePlatformUnloadedLoaded();
+					return;
+				}
+			}
 
 			if (!_watchingPlatformLoaded)
 			{
-				if (window is not null)
-					window.HandlerChanged += OnWindowHandlerChanged;
+				if (newWindow is not null)
+					newWindow.HandlerChanged += OnWindowHandlerChanged;
 
 				_watchingPlatformLoaded = true;
 			}
@@ -1865,6 +2386,7 @@ namespace Microsoft.Maui.Controls
 
 			public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
 			{
+				// IMPORTANT! Update VisibilityDesignTypeConverter.IsValid if making changes here
 				var strValue = value?.ToString()?.Trim();
 
 				if (!string.IsNullOrEmpty(strValue))

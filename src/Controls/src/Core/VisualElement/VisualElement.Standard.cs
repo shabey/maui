@@ -8,13 +8,13 @@ namespace Microsoft.Maui.Controls
 	{
 		partial void HandlePlatformUnloadedLoaded()
 		{
-			if (Window != null)
+			if (this.IsLoaded)
 			{
-				OnLoadedCore();
+				SendLoaded(false);
 			}
 			else
 			{
-				OnUnloadedCore();
+				SendUnloaded(false);
 			}
 		}
 	}
