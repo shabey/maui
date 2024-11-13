@@ -2,6 +2,7 @@ parameters:
   androidPool: { }
   iosPool: { }
   windowsPool: { }
+  windowsBuildPool: { }
   macosPool: { }
   androidCompatibilityPool: { }
   iosCompatibilityPool: { }
@@ -79,9 +80,8 @@ stages:
     jobs:
       - job: build_ui_tests
         displayName: Build Sample App (Windows)
-        pool: ${{ parameters.windowsPool }}
+        pool: ${{ parameters.windowsBuildPool }}
         variables:
-          REQUIRED_XCODE: $(DEVICETESTS_REQUIRED_XCODE)
           APPIUM_HOME: $(System.DefaultWorkingDirectory)/.appium/
         steps:
           - template: ui-tests-build-sample.yml
@@ -165,6 +165,43 @@ stages:
                       agentPoolAccessToken: ${{ parameters.agentPoolAccessToken }}
                       runtimeVariant : "Mono"
                       testFilter: $(CATEGORYGROUP)
+
+  - stage: ios_ui_tests_mono_cv2
+    displayName: iOS UITests Mono CollectionView2
+    dependsOn: build_ui_tests
+    jobs:
+      - ${{ each project in parameters.projects }}:
+        - ${{ if ne(project.ios, '') }}:
+          - ${{ each version in parameters.iosVersions }}:
+            - ${{ if not(containsValue(project.iosVersionsExclude, version)) }}:
+              - job: ios_ui_tests_mono_${{ project.name }}_${{ replace(version, '.', '_') }}
+                timeoutInMinutes: 240 # how long to run the job before automatically cancelling
+                workspace:
+                  clean: all
+                displayName: ${{ coalesce(project.desc, project.name) }} (v${{ version }})
+                pool: ${{ parameters.iosPool }}
+                variables:
+                  REQUIRED_XCODE: $(DEVICETESTS_REQUIRED_XCODE)
+                  APPIUM_HOME: $(System.DefaultWorkingDirectory)/.appium/
+                steps:
+                  - template: ui-tests-steps.yml
+                    parameters:
+                      platform: ios
+                      ${{ if eq(version, 'latest') }}:
+                        version: 16.4
+                      ${{ if ne(version, 'latest') }}:
+                        version: ${{ version }}
+                      path: ${{ project.ios }}
+                      app: ${{ project.app }}
+                      ${{ if eq(version, 'latest') }}:
+                        device: ios-simulator-64
+                      ${{ if ne(version, 'latest') }}:
+                        device: ios-simulator-64_${{ version }}
+                      provisionatorChannel: ${{ parameters.provisionatorChannel }}
+                      agentPoolAccessToken: ${{ parameters.agentPoolAccessToken }}
+                      runtimeVariant : "Mono"
+                      testFilter: "CollectionView"
+                      testConfigurationArgs: "CollectionView2"
 
   - ${{ if or(parameters.BuildEverything, and(ne(variables['Build.Reason'], 'PullRequest'), eq(variables['System.TeamProject'], 'devdiv'))) }}:
     - stage: ios_ui_tests_nativeaot
