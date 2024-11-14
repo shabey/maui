@@ -14,7 +14,7 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 
 		[Test]
 		[Category(UITestCategories.Shape)]
-		public void TestItDoesntCrashWithWrongIconName()
+		public void ShapeBackgroundColorChanges()
 		{
 			App.WaitForElement("Button");
 			App.Click("Button");
