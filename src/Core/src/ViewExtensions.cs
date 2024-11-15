@@ -100,7 +100,7 @@ namespace Microsoft.Maui
 
 #if WINDOWS || ANDROID
 			if (view is IBorderView border)
-				return border?.Shape != null || border?.Stroke != null;
+				return border?.Shape != null || (border?.Stroke != null && border.StrokeThickness > 0);
 #endif
 			return false;
 		}
