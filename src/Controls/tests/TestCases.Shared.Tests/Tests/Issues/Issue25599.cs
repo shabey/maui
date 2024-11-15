@@ -18,9 +18,9 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 			App.WaitForElement("HomePageButton");
 			App.Tap("HomePageButton");
 			App.WaitForElement("DetailsPageLabel");
-			App.Tap("Home");
+			App.Tap("Home"); // Tapping already selected Home tab
 			App.WaitForElement("DetailsPageLabel");
-			App.WaitForNoElement("HomePageLabel"); //Navigation does not occur when clicking on an already selected tab
+			App.WaitForNoElement("HomePageLabel"); // Navigation does not occur when clicking on an already selected tab
 		}
 	}
 }

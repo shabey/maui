@@ -3,8 +3,7 @@
        xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
        x:Class="Maui.Controls.Sample.Issues.Issue25599"
        xmlns:local="clr-namespace:Maui.Controls.Sample.Issues">
-    <TabBar Shell.TabBarForegroundColor="Green"
-        Shell.TabBarUnselectedColor="Red">
+    <TabBar>
         <Tab Title="Home" x:Name="FirstTab">
             <ShellContent
             Title="Home" >
