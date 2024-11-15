@@ -690,8 +690,9 @@ namespace Microsoft.Maui.Controls.Handlers.Compatibility
 				Control.ReloadData();
 			else
 				PerformWithoutAnimation(() => { Control.ReloadData(); });
-				
-			Control.ScrollToRow(NSIndexPath.FromRowSection(0, 0), UITableViewScrollPosition.Bottom, false);
+
+			if (Control.NumberOfRowsInSection(0) > 0)
+				Control.ScrollToRow(NSIndexPath.FromRowSection(0, 0), UITableViewScrollPosition.Bottom, false);
 		}
 
 		void InvalidateCellCache()
