@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
-using System.Formats.Tar;
 using CoreGraphics;
 using Foundation;
 using Microsoft.Maui.Devices;
@@ -345,11 +344,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			SetPosition(targetPosition);
 			SetCurrentItem(targetPosition);
 
-			if (e.Action == NotifyCollectionChangedAction.Reset)
-			{
-
-			}
-			else
+			if (e.Action == NotifyCollectionChangedAction.Remove)
 			{
 				//Since we can be removing the item that is already created next to the current item we need to update the visible cells
 				if (ItemsView.Loop)
@@ -454,7 +449,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 				return;
 			}
 
-			if (goToPosition != carouselPosition || forceScroll || carouselPosition == 0)
+			if (goToPosition != carouselPosition || forceScroll)
 			{
 				_gotoPosition = goToPosition;
 				carousel.ScrollTo(goToPosition, position: Microsoft.Maui.Controls.ScrollToPosition.Center, animate: animate);
