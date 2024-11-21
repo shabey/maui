@@ -19,10 +19,13 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 		{
 			App.WaitForElement("button");
 			App.ScrollDown("list", ScrollStrategy.Gesture, swipePercentage: 0.5, swipeSpeed: 100);
+			App.ScrollDown("groupedList", ScrollStrategy.Gesture, swipePercentage: 0.5, swipeSpeed: 100);
 			App.Click("button");
 
 			var label = App.FindElement("scrollYLabel").GetText();
+			var groupedListlabel = App.FindElement("scrollYLabelGroupedList").GetText();
 			Assert.That(label, Is.EqualTo("0"));
+			Assert.That(groupedListlabel, Is.EqualTo("0"));
 		}
 	}
 }

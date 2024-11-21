@@ -8,6 +8,11 @@
 		public Issue25256()
 		{
 			InitializeComponent();
+			groupedList.ItemsSource = new List<GroupedList>()
+			{
+				new GroupedList("Group 1", Enumerable.Range(0, 100).Select(i => i.ToString()).ToList()),
+			};
+
 			list.ItemsSource = Enumerable.Range(0, 100).Select(i => i.ToString()).ToList();
 		}
 
@@ -16,9 +21,29 @@
 			scrollYLabel.Text = e.ScrollY.ToString();
 		}
 
+		private void GroupedListView_Scrolled(object sender, ScrolledEventArgs e)
+		{
+			scrollYLabelGroupedList.Text = e.ScrollY.ToString();
+		}
+
 		private void Button_Clicked(object sender, EventArgs e)
 		{
+			groupedList.ItemsSource = new List<GroupedList>()
+			{
+				new GroupedList("Group 2", Enumerable.Range(100, 100).Select(i => i.ToString()).ToList()),
+			};
+
 			list.ItemsSource = Enumerable.Range(100, 100).Select(i => i.ToString()).ToList();
+		}
+
+		public class GroupedList : List<string>
+		{
+			public string Title { get; private set; }
+
+			public GroupedList(string title, List<string> items) : base(items)
+			{
+				Title = title;
+			}
 		}
 	}
 }
