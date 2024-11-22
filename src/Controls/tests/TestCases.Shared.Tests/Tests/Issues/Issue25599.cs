@@ -1,5 +1,4 @@
-﻿#if ANDROID // Facing a full exception when clicking on the already selected tab(App.Tap()) in Windows, iOS, and macOS, so excluded those platforms.
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using UITest.Appium;
 using UITest.Core;
 
@@ -18,10 +17,13 @@ namespace Microsoft.Maui.TestCases.Tests.Issues
 			App.WaitForElement("HomePageButton");
 			App.Tap("HomePageButton");
 			App.WaitForElement("DetailsPageLabel");
-			App.Tap("Home"); // Tapping already selected Home tab
+#if ANDROID || WINDOWS
+			App.Tap("Home"); // Tapping already selected tab using Title
+#elif MACCATALYST || IOS
+			App.Tap("Tab1"); // Tapping already selected tab using AutomationId
+#endif
 			App.WaitForElement("DetailsPageLabel");
 			App.WaitForNoElement("HomePageLabel"); // Navigation does not occur when clicking on an already selected tab
 		}
 	}
 }
-#endif
