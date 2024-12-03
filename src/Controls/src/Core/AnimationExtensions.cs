@@ -67,6 +67,12 @@ namespace Microsoft.Maui.Controls
 			};
 			s_tweeners[id] = animation;
 			animation.Commit(animationManager);
+
+			animation.Finished += () =>
+			{
+				s_tweeners.TryRemove(id, out _);
+				animation.Finished = null;
+			};
 			return id;
 		}
 
@@ -81,6 +87,13 @@ namespace Microsoft.Maui.Controls
 			};
 			s_tweeners[id] = animation;
 			animation.Commit(animationManager);
+
+			animation.Finished += () =>
+			{
+				s_tweeners.TryRemove(id, out _);
+				animation.Finished = null;
+			};
+
 			return id;
 		}
 
@@ -260,8 +273,24 @@ namespace Microsoft.Maui.Controls
 
 			s_animations[key] = info;
 
+			if (self is VisualElement ve)
+			{
+				ve.Unloaded += OnVisualElementUnloaded;
+			}
+
 			info.Callback(0.0f);
 			tweener.Start();
+
+			void OnVisualElementUnloaded(object sender, EventArgs args)
+			{
+				if (sender is not VisualElement visualElement)
+				{
+					return;
+				}
+
+				s_animations.Remove(key);
+				visualElement.Unloaded -= OnVisualElementUnloaded;
+			}
 		}
 
 		static void AnimateKineticInternal(IAnimatable self, IAnimationManager animationManager, string name, Func<double, double, bool> callback, double velocity, double drag, Action finished = null)
