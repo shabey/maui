@@ -165,7 +165,7 @@ namespace Microsoft.Maui.Controls.Handlers
 			}
 		}
 
-		void MapMenuItems()
+		internal void MapMenuItems()
 		{
 			IShellItemController shellItemController = VirtualView;
 			var items = new List<BaseShellItem>();
