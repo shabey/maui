@@ -12,7 +12,7 @@ namespace Microsoft.Maui.Platform
 
 		internal static void UpdateBackground(this PlatformGraphicsView PlatformGraphicsView, IGraphicsView graphicsView)
 		{
-			PlatformGraphicsView.BackgroundColor = graphicsView.Background?.ToColor() ?? Colors.White;
+			PlatformGraphicsView.BackgroundColor = graphicsView.Background?.ToColor();
 		}
 	}
 }
