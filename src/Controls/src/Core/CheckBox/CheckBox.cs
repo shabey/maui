@@ -47,6 +47,9 @@ namespace Microsoft.Maui.Controls
 				VisualStateManager.GoToState(this, IsCheckedVisualState);
 			else
 				base.ChangeVisualState();
+
+			string state = IsEnabled ? "Normal" : "Disabled";
+			VisualStateManager.GoToState(this, state);
 		}
 
 		public event EventHandler<CheckedChangedEventArgs> CheckedChanged;
