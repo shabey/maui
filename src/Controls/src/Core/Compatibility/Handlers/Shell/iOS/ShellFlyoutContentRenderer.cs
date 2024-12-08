@@ -193,7 +193,9 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		void OnHeaderMeasureInvalidated(object sender, System.EventArgs e)
 		{
-			_headerView?.SizeThatFits(new CGSize(View.Frame.Width, double.PositiveInfinity));
+			var size = _headerView?.SizeThatFits(new CGSize(View.Frame.Width, double.PositiveInfinity));
+			if (size is not null)
+				_footerView.Frame = new CGRect(_footerView.Frame.Left, _footerView.Frame.Top, size.Value.Width, size.Value.Height);
 		}
 
 		void OnFooterMeasureInvalidated(object sender, System.EventArgs e)
