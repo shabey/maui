@@ -140,7 +140,7 @@ namespace Microsoft.Maui.Handlers
 			_flyoutView = newFlyoutView;
 
 			// Disable click-through on items behind the drawer
-			_flyoutView.Clickable = true;
+			_flyoutView.SetOnTouchListener(new DrawerTouchListener());
 
 			if (_flyoutView == null)
 				return;
@@ -152,6 +152,11 @@ namespace Microsoft.Maui.Handlers
 			}
 
 			LayoutViews();
+		}
+
+		class DrawerTouchListener : Java.Lang.Object, View.IOnTouchListener
+		{
+			public bool OnTouch(View? v, MotionEvent? e) => true;
 		}
 
 		void LayoutViews()
