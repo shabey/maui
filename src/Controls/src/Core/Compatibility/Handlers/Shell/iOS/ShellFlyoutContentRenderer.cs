@@ -193,9 +193,7 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 
 		void OnHeaderMeasureInvalidated(object sender, System.EventArgs e)
 		{
-			var size = _headerView?.SizeThatFits(new CGSize(View.Frame.Width, double.PositiveInfinity));
-			if (size is not null)
-				_footerView.Frame = new CGRect(_footerView.Frame.Left, _footerView.Frame.Top, size.Value.Width, size.Value.Height);
+			ReMeasureHeader();
 		}
 
 		void OnFooterMeasureInvalidated(object sender, System.EventArgs e)
@@ -203,11 +201,15 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 			ReMeasureFooter();
 		}
 
+		void ReMeasureHeader()
+		{
+			_headerView?.UpdateSize(new CGSize(View.Frame.Width, double.PositiveInfinity));
+		}
+
 		void ReMeasureFooter()
 		{
-			var size = _footerView?.SizeThatFits(new CGSize(View.Frame.Width, double.PositiveInfinity));
-			if (size is not null)
-				UpdateFooterPosition(size.Value.Height);
+			_footerView?.UpdateSize(new CGSize(View.Frame.Width, double.PositiveInfinity));
+			UpdateFooterPosition();
 		}
 
 		void UpdateFooterPosition()
@@ -236,7 +238,8 @@ namespace Microsoft.Maui.Controls.Platform.Compatibility
 		public override void ViewWillLayoutSubviews()
 		{
 			base.ViewWillLayoutSubviews();
-			UpdateFooterPosition();
+			ReMeasureHeader();
+			ReMeasureFooter();
 			UpdateFlyoutContent();
 		}
 
