@@ -1,18 +1,15 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Android.App.Roles;
+using Android.Content;
 using Android.Runtime;
 using Android.Views;
 using AndroidX.AppCompat.Widget;
 using AndroidX.DrawerLayout.Widget;
-using AndroidX.Fragment.App;
-using AndroidX.Lifecycle;
 
 namespace Microsoft.Maui.Handlers
 {
 	public partial class FlyoutViewHandler : ViewHandler<IFlyoutView, View>
 	{
-		View? _flyoutView;
+		FlyoutContainer? _flyoutView;
 		const uint DefaultScrimColor = 0x99000000;
 		View? _navigationRoot;
 		LinearLayoutCompat? _sideBySideView;
@@ -131,17 +128,15 @@ namespace Microsoft.Maui.Handlers
 			_ = VirtualView.Flyout.ToPlatform(MauiContext);
 
 			var newFlyoutView = VirtualView.Flyout.ToPlatform();
+			FlyoutContainer container = new FlyoutContainer(Context);
+			container.AddView(newFlyoutView);
 			if (_flyoutView == newFlyoutView)
 				return;
 
 			if (_flyoutView != null)
 				_flyoutView.RemoveFromParent();
 
-			_flyoutView = newFlyoutView;
-
-			// Disable click-through on items behind the drawer
-			_flyoutView.SetOnTouchListener(new DrawerTouchListener());
-
+			_flyoutView = container;
 			if (_flyoutView == null)
 				return;
 
@@ -152,11 +147,6 @@ namespace Microsoft.Maui.Handlers
 			}
 
 			LayoutViews();
-		}
-
-		class DrawerTouchListener : Java.Lang.Object, View.IOnTouchListener
-		{
-			public bool OnTouch(View? v, MotionEvent? e) => true;
 		}
 
 		void LayoutViews()
@@ -390,6 +380,33 @@ namespace Microsoft.Maui.Handlers
 		{
 			if (handler is FlyoutViewHandler platformHandler)
 				platformHandler.UpdateFlyoutBehavior();
+		}
+
+		internal class FlyoutContainer : ContentViewGroup
+		{
+			public FlyoutContainer(Context context) : base(context) { }
+
+			public override bool OnTouchEvent(MotionEvent? e)
+			{
+				// Disable click-through on items behind the drawer
+				return true;
+			}
+
+			protected override void OnMeasure(int widthMeasureSpec, int heightMeasureSpec)
+			{
+				var child = GetChildAt(0);
+				if (child is not null)
+				{
+					MeasureChild(child, widthMeasureSpec, heightMeasureSpec);
+					SetMeasuredDimension(child.MeasuredWidth, child.MeasuredHeight);
+				}
+			}
+
+			protected override void OnLayout(bool changed, int l, int t, int r, int b)
+			{
+				var child = GetChildAt(0);
+				child?.Layout(0, 0, child.MeasuredWidth, child.MeasuredHeight);
+			}
 		}
 	}
 }
