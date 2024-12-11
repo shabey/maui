@@ -125,20 +125,14 @@ namespace Microsoft.Maui.Handlers
 				VirtualView.Flyout.Handler.DisconnectHandler();
 			}
 
-			_ = VirtualView.Flyout.ToPlatform(MauiContext);
-
-			var newFlyoutView = VirtualView.Flyout.ToPlatform();
-			FlyoutContainer container = new FlyoutContainer(Context);
-			container.AddView(newFlyoutView);
-			if (_flyoutView == newFlyoutView)
-				return;
-
-			if (_flyoutView != null)
-				_flyoutView.RemoveFromParent();
-
-			_flyoutView = container;
-			if (_flyoutView == null)
-				return;
+			if (_flyoutView is null)
+			{
+				_flyoutView = new FlyoutContainer(Context, VirtualView.Flyout, MauiContext);
+			}
+			else
+			{
+				_flyoutView.UpdatePlatformView(VirtualView.Flyout, MauiContext);
+			}
 
 			if (VirtualView.Flyout.Background == null && Context?.Theme != null)
 			{
@@ -382,30 +376,14 @@ namespace Microsoft.Maui.Handlers
 				platformHandler.UpdateFlyoutBehavior();
 		}
 
-		internal class FlyoutContainer : ContentViewGroup
+		internal class FlyoutContainer : GeneralWrapperView
 		{
-			public FlyoutContainer(Context context) : base(context) { }
+			public FlyoutContainer(Context context, IView childView, IMauiContext mauiContext) : base(context, childView, mauiContext) { }
 
 			public override bool OnTouchEvent(MotionEvent? e)
 			{
 				// Disable click-through on items behind the drawer
 				return true;
-			}
-
-			protected override void OnMeasure(int widthMeasureSpec, int heightMeasureSpec)
-			{
-				var child = GetChildAt(0);
-				if (child is not null)
-				{
-					MeasureChild(child, widthMeasureSpec, heightMeasureSpec);
-					SetMeasuredDimension(child.MeasuredWidth, child.MeasuredHeight);
-				}
-			}
-
-			protected override void OnLayout(bool changed, int l, int t, int r, int b)
-			{
-				var child = GetChildAt(0);
-				child?.Layout(0, 0, child.MeasuredWidth, child.MeasuredHeight);
 			}
 		}
 	}
