@@ -339,7 +339,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 
 			_gotoPosition = -1;
 
-			//We need to update the position while modifying the collection.
+			// We need to update the position while modifying the collection.
 			if (ItemsView.ItemsUpdatingScrollMode == ItemsUpdatingScrollMode.KeepItemsInView)
 			{
 				targetPosition = 0;
@@ -352,6 +352,7 @@ namespace Microsoft.Maui.Controls.Handlers.Items
 			{
 				targetPosition = _positionAfterUpdate;
 			}
+
 			_positionAfterUpdate = -1;
 
 			SetPosition(targetPosition);
