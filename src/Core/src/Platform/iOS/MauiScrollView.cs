@@ -9,9 +9,6 @@ namespace Microsoft.Maui.Platform
 {
 	public class MauiScrollView : UIScrollView, IUIViewLifeCycleEvents, IMauiPlatformView
 	{
-		[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = "This is a self-reference so it won't cause a memory leak")]
-		IDisposable? _contentSizeObserver;
-
 		bool _invalidateParentWhenMovedToWindow;
 		CGSize _lastContentSize;
 
@@ -23,31 +20,19 @@ namespace Microsoft.Maui.Platform
 			set => _reference = value == null ? null : new(value);
 		}
 
-		public MauiScrollView()
+		public override CGSize ContentSize
 		{
-			_contentSizeObserver = AddObserver("contentSize", NSKeyValueObservingOptions.New, ContentSizeChanged);
-		}
-
-		protected override void Dispose(bool disposing)
-		{
-			if (disposing)
+			get => base.ContentSize;
+			set
 			{
-				_contentSizeObserver?.Dispose();
-				_contentSizeObserver = null;
-			}
+				base.ContentSize = value;
 
-			base.Dispose(disposing);
-		}
-
-		void ContentSizeChanged(NSObservedChange obj)
-		{
-			// This is needed in case the ScrollView is set to auto-size through `VerticalOptions` or `HorizontalOptions`.
-			// We use the same strategy in `CollectionView`.
-			var newSize = ContentSize;
-			if (newSize != _lastContentSize)
-			{
-				_lastContentSize = newSize;
-				View?.InvalidateMeasure();
+				// If the ContentSize changed, we need to invalidate the measure of the ScrollView
+				if (_lastContentSize != value)
+				{
+					_lastContentSize = value;
+					View?.InvalidateMeasure();
+				}
 			}
 		}
 
@@ -77,6 +62,7 @@ namespace Microsoft.Maui.Platform
 
 		[UnconditionalSuppressMessage("Memory", "MEM0002", Justification = IUIViewLifeCycleEvents.UnconditionalSuppressMessage)]
 		EventHandler? _movedToWindow;
+
 		event EventHandler IUIViewLifeCycleEvents.MovedToWindow
 		{
 			add => _movedToWindow += value;
