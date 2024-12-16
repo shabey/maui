@@ -51,13 +51,13 @@ public static class ImageAssert
 		}
 
 		using (var actualData = actual.Encode(SKEncodedImageFormat.Png, 100))
-		using (var actualFile = File.Create(Path.ChangeExtension(outputFilename, ".actual.png")))
+		using (var actualFile = File.Create(Path.ChangeExtension(outputFilename, ".png")))
 		{
 			actualData.SaveTo(actualFile);
 		}
 
 		File.Copy(expectedFilename, Path.ChangeExtension(outputFilename, ".expected.png"), true);
 
-		Assert.Fail($"Image was not equal. Error was {similarity.ErrorPixelPercentage}% ({similarity.AbsoluteError} pixels). See {diffFilename}");
+		Assert.Fail($"Image was not equal. Error was {similarity.ErrorPixelPercentage}% ({similarity.AbsoluteError} pixels), which was higher than the theshold of {ImageErrorThreshold}%. See {diffFilename}");
 	}
 }
