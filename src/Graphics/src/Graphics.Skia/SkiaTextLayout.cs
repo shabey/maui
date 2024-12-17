@@ -37,20 +37,16 @@ namespace Microsoft.Maui.Graphics.Skia
 			{
 				_paint = new SKPaint()
 				{
-#pragma warning disable CS0618 // Type or member is obsolete
 					Typeface = _textAttributes?.Font?.ToSKTypeface() ?? SKTypeface.Default,
 					TextSize = _textAttributes.FontSize
-#pragma warning restore CS0618 // Type or member is obsolete
 				};
 
 				_disposePaint = true;
 			}
 
-#pragma warning disable CS0618 // Type or member is obsolete
 			var metrics = _paint.FontMetrics;
 			_descent = metrics.Descent;
 			_lineHeight = _paint.FontSpacing;
-#pragma warning restore CS0618 // Type or member is obsolete
 		}
 
 		public void LayoutText()
@@ -71,12 +67,10 @@ namespace Microsoft.Maui.Graphics.Skia
 			var top = y;
 			var bottom = y + height;
 
-#pragma warning disable CS0618 // Type or member is obsolete
 			if (_textAttributes.HorizontalAlignment == HorizontalAlignment.Right)
 				_paint.TextAlign = SKTextAlign.Right;
 			else if (_textAttributes.HorizontalAlignment == HorizontalAlignment.Center)
 				_paint.TextAlign = SKTextAlign.Center;
-#pragma warning restore CS0618 // Type or member is obsolete
 
 			var lines = CreateLines(y, bottom, width);
 			switch (_textAttributes.VerticalAlignment)
@@ -92,9 +86,7 @@ namespace Microsoft.Maui.Graphics.Skia
 					break;
 			}
 
-#pragma warning disable CS0618 // Type or member is obsolete
 			_paint.TextAlign = SKTextAlign.Left;
-#pragma warning restore CS0618 // Type or member is obsolete
 		}
 
 		private void LayoutCenterAligned(
@@ -223,9 +215,7 @@ namespace Microsoft.Maui.Graphics.Skia
 				if (_textFlow == TextFlow.ClipBounds && _textAttributes.VerticalAlignment == VerticalAlignment.Top && y > bottom)
 					return lines;
 
-#pragma warning disable CS0618 // Type or member is obsolete
 				var count = (int)_paint.BreakText(_value.Substring(index), width, out var textWidth);
-#pragma warning restore CS0618 // Type or member is obsolete
 
 				var found = false;
 				if (WordWrap && index + count < length)
@@ -242,9 +232,7 @@ namespace Microsoft.Maui.Graphics.Skia
 
 				var line = _value.Substring(index, count);
 				if (found)
-#pragma warning disable CS0618 // Type or member is obsolete
 					textWidth = _paint.MeasureText(line);
-#pragma warning restore CS0618 // Type or member is obsolete
 				lines.Add(new TextLine(line, textWidth));
 
 				index += count;
