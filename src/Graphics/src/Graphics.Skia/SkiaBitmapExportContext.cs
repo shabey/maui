@@ -12,6 +12,7 @@ namespace Microsoft.Maui.Graphics.Skia
 		private SKImage _image;
 		private SKSurface _surface;
 		private SKCanvas _skiaCanvas;
+		private SkiaCanvas _platformCanvas;
 		private ScalingCanvas _canvas;
 
 		public SkiaBitmapExportContext(
@@ -39,12 +40,12 @@ namespace Microsoft.Maui.Graphics.Skia
 			}
 
 			_skiaCanvas = _surface.Canvas;
-			var platformCanvas = new SkiaCanvas
+			_platformCanvas = new SkiaCanvas
 			{
 				Canvas = _skiaCanvas,
 				DisplayScale = displayScale
 			};
-			_canvas = new ScalingCanvas(platformCanvas);
+			_canvas = new ScalingCanvas(_platformCanvas);
 			_disposeBitmap = disposeBitmap;
 		}
 
@@ -58,6 +59,12 @@ namespace Microsoft.Maui.Graphics.Skia
 
 		public override void Dispose()
 		{
+			if (_platformCanvas != null)
+			{
+				_platformCanvas.Dispose();
+				_platformCanvas = null!;
+			}
+
 			if (_skiaCanvas != null)
 			{
 				_skiaCanvas.Dispose();
