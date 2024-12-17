@@ -5,7 +5,17 @@
     {
         public Issue26629()
         {
-	        var vsl = new VerticalStackLayout { Spacing = 16 };
+	        var grid = new Grid
+	        {
+		        Margin = 40,
+		        RowSpacing = 16,
+		        BackgroundColor = Colors.Beige,
+				RowDefinitions = new RowDefinitionCollection(
+					new RowDefinition(GridLength.Auto),
+					new RowDefinition(GridLength.Auto),
+					new RowDefinition(GridLength.Star)),
+				ColumnDefinitions = new ColumnDefinitionCollection(new ColumnDefinition(GridLength.Star)),
+	        };
 	        var scrollView = new ScrollView();
 	        var scrollViewVsl = new VerticalStackLayout();
 	        var button = new Button
@@ -20,6 +30,7 @@
 	        sizeLabel.SetBinding(Label.TextProperty, new Binding("Height", source: scrollView));
 
 	        var i = 0;
+	        scrollView.VerticalOptions = LayoutOptions.Start;
 	        scrollView.BackgroundColor = Colors.LightBlue;
 	        scrollViewVsl.Children.Add(CreateLabel("Label0"));
 	        button.Clicked += (sender, args) =>
@@ -28,11 +39,11 @@
 	        };
 	        
 	        scrollView.Content = scrollViewVsl;
-	        vsl.Children.Add(button);
-	        vsl.Children.Add(sizeLabel);
-	        vsl.Children.Add(scrollView);
+	        grid.Add(button, 0, 0);
+	        grid.Add(sizeLabel, 0, 1);
+	        grid.Add(scrollView, 0, 2);
 	        
-	        Content = vsl;
+	        Content = grid;
         }
 
         static Label CreateLabel(string automationId)
