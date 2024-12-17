@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using SkiaSharp;
 
@@ -32,10 +33,9 @@ namespace Microsoft.Maui.Graphics.Skia
 				_surface = SKSurface.Create(imageInfo);
 			}
 
-			if (_surface == null)
+			if (_surface is null)
 			{
-				System.Diagnostics.Debug.WriteLine("Unable to create a Skia surface");
-				return;
+				throw new InvalidOperationException("Unable to create a Skia surface.");
 			}
 
 			_skiaCanvas = _surface.Canvas;
@@ -52,37 +52,25 @@ namespace Microsoft.Maui.Graphics.Skia
 
 		public override IImage Image => new SkiaImage(Bitmap);
 
-		public SKImage SKImage => _image ?? (_image = _surface.Snapshot());
+		public SKImage SKImage => _image ??= _surface.Snapshot();
 
-		public SKBitmap Bitmap
-		{
-			get
-			{
-				if (_bitmap == null)
-				{
-					var data = SKImage.Encode();
-					_bitmap = SKBitmap.Decode(data);
-				}
-
-				return _bitmap;
-			}
-		}
+		public SKBitmap Bitmap => _bitmap ??= SKBitmap.FromImage(SKImage);
 
 		public override void Dispose()
 		{
 			if (_skiaCanvas != null)
 			{
 				_skiaCanvas.Dispose();
-				_skiaCanvas = null;
+				_skiaCanvas = null!;
 			}
 
 			if (_surface != null)
 			{
 				_surface.Dispose();
-				_surface = null;
+				_surface = null!;
 			}
 
-			if (_image != null)
+			if (_image != null && _disposeBitmap)
 			{
 				_image.Dispose();
 				_image = null;
@@ -94,17 +82,15 @@ namespace Microsoft.Maui.Graphics.Skia
 				_bitmap = null;
 			}
 
-			_canvas = null;
+			_canvas = null!;
 
 			base.Dispose();
 		}
 
 		public override void WriteToStream(Stream stream)
 		{
-			using (var data = SKImage.Encode(SKEncodedImageFormat.Png, 100))
-			{
-				data.SaveTo(stream);
-			}
+			using var data = SKImage.Encode(SKEncodedImageFormat.Png, 100);
+			data.SaveTo(stream);
 		}
 	}
 }
