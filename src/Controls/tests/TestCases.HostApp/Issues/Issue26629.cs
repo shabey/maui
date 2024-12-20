@@ -30,8 +30,9 @@
 	        sizeLabel.SetBinding(Label.TextProperty, new Binding("Height", source: scrollView));
 
 	        var i = 0;
-	        scrollView.VerticalOptions = LayoutOptions.Start;
 	        scrollView.BackgroundColor = Colors.LightBlue;
+	        scrollView.Padding = 16;
+	        scrollView.VerticalOptions = LayoutOptions.Start;
 	        scrollViewVsl.Children.Add(CreateLabel("Label0"));
 	        button.Clicked += (sender, args) =>
 	        {
@@ -52,6 +53,7 @@
 	        {
 		        Text = "Huge Label",
 		        FontSize = 50,
+		        BackgroundColor = Colors.SlateBlue,
 		        AutomationId = automationId,
 	        };
         }
